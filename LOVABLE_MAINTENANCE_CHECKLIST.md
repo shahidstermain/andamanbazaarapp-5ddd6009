@@ -5,6 +5,9 @@ Run this before every GitHub reconnect, major merge, or publish. Each item shoul
 ## 1. Git & branch hygiene
 - [ ] Default branch is the one Lovable tracks (usually `main`) and still exists on GitHub.
 - [ ] No force-push, rebase, or history rewrite on the tracked branch since the last Lovable sync.
+- [ ] Branch protection enabled on the tracked branch (see `docs/github-branch-protection.md`):
+      `allow_force_pushes=false`, `allow_deletions=false`, `required_linear_history=true`,
+      Lovable GitHub App allowed to push (admins not enforced, or App in bypass list).
 - [ ] No unresolved merge conflicts; conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) absent:
       `rg -n '^(<<<<<<<|=======|>>>>>>>)' || echo OK`
 - [ ] Working tree contains no files >100 MB and no symlinks:
