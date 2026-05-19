@@ -377,6 +377,7 @@ export const islandCreators: IslandCreator[] = [
   },
 ];
 
+
 export const ALL_TAGS: CreatorTag[] = [
   "photographer",
   "drone",
