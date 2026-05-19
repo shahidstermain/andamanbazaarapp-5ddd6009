@@ -543,7 +543,8 @@ Deno.serve(async (req) => {
     });
   }
 
-  try {
+  const work = (async () => {
+    try {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const supabase = createClient(
@@ -624,24 +625,15 @@ Deno.serve(async (req) => {
     });
     if (insertErr) throw insertErr;
 
-    return new Response(
-      JSON.stringify({
-        status: "created",
-        slug,
-        title: post.headline,
-        source: "stories-agent",
-        cover_image_url: coverUrl,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  } catch (e) {
-    const msg = (e as Error).message;
-    console.error("[stories-agent] error:", msg);
-    const status =
-      msg === "ai_rate_limited" ? 429 : msg === "ai_credits_exhausted" ? 402 : 500;
-    return new Response(JSON.stringify({ status: "error", error: msg }), {
-      status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+      console.log("[stories-agent] created:", slug, post.headline);
+    } catch (e) {
+      console.error("[stories-agent] background error:", (e as Error).message);
+    }
+  })();
+  // @ts-ignore EdgeRuntime is provided by Supabase Edge Functions runtime
+  if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work);
+  return new Response(
+    JSON.stringify({ status: "accepted", message: "stories agent running in background" }),
+    { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
 });

@@ -852,7 +852,10 @@ Deno.serve(async (req) => {
     });
   }
 
-  try {
+  // Run the heavy work in the background so pg_cron / admin trigger doesn't
+  // time out waiting on AI generation + scraping. Respond in <100ms.
+  const work = (async () => {
+    try {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const supabase = createClient(
@@ -967,24 +970,15 @@ Deno.serve(async (req) => {
       url_hash: urlHash,
     });
 
-    return new Response(
-      JSON.stringify({
-        status: "created",
-        slug,
-        title: post.headline,
-        source: story.source,
-        cover_image_url: coverUrl,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  } catch (e) {
-    const msg = (e as Error).message;
-    console.error("[agent] error:", msg);
-    const status =
-      msg === "ai_rate_limited" ? 429 : msg === "ai_credits_exhausted" ? 402 : 500;
-    return new Response(JSON.stringify({ status: "error", error: msg }), {
-      status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+      console.log("[agent] created:", slug, post.headline);
+    } catch (e) {
+      console.error("[agent] background error:", (e as Error).message);
+    }
+  })();
+  // @ts-ignore EdgeRuntime is provided by Supabase Edge Functions runtime
+  if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work);
+  return new Response(
+    JSON.stringify({ status: "accepted", message: "agent running in background" }),
+    { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
 });
