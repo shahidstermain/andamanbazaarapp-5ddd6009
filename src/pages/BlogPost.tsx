@@ -267,3 +267,42 @@ export default function BlogPost() {
     </article>
   );
 }
+
+function FeaturedBadgeCta({
+  slug,
+  title,
+  handle,
+}: {
+  slug: string;
+  title: string;
+  handle: string;
+}) {
+  const params = new URLSearchParams({ slug, story: title });
+  if (handle) params.set("handle", handle);
+  const href = `/badge?${params.toString()}`;
+
+  if (handle) {
+    return (
+      <Link
+        to={href}
+        className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-4 py-3 text-sm font-medium text-foreground transition-colors hover:border-primary/60 hover:bg-primary/10"
+      >
+        <span className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          You're featured here, @{handle} — grab your Instagram-story badge
+        </span>
+        <span className="text-xs font-semibold text-primary">Get badge →</span>
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      to={href}
+      className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+    >
+      <Sparkles className="h-3.5 w-3.5" />
+      Featured in this story? Get your shareable badge
+    </Link>
+  );
+}
