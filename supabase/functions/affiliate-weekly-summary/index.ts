@@ -74,6 +74,17 @@ function buildHtml(opts: {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Require a shared cron secret. Without this, anyone on the internet could trigger
+  // admin email blasts and drain Resend quota.
+  const expectedSecret = Deno.env.get("NEWS_AGENT_SECRET");
+  const providedSecret = req.headers.get("x-cron-secret");
+  if (!expectedSecret || providedSecret !== expectedSecret) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
