@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 type ReleaseNote = {
   id: string;
@@ -22,8 +23,14 @@ function asStringArray(v: unknown): string[] {
 export default function WhatsNew() {
   const [items, setItems] = useState<ReleaseNote[] | null>(null);
 
+  usePageSeo({
+    title: "What's New · Product Updates",
+    description:
+      "Latest updates, new features and improvements to AndamanBazaar — the hyperlocal marketplace for the Andaman & Nicobar Islands.",
+    path: "/whats-new",
+  });
+
   useEffect(() => {
-    document.title = "What's new — AndamanBazaar";
     (async () => {
       const { data } = await supabase
         .from("release_notes")
