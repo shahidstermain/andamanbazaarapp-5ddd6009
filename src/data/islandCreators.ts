@@ -325,6 +325,56 @@ export const islandCreators: IslandCreator[] = [
     profileUrl: "https://www.andamandiaries.com/",
     storySlug: STORY,
   },
+  // ── Added per editor request (May 2026) ────────────────────────────────
+  {
+    id: "photobible",
+    name: "PhotoBible",
+    handle: "@PhotoBible",
+    blurb:
+      "Island photography handle archiving sunrise-to-sunset frames from across the Andamans — boats, beaches, monsoon skies and street life.",
+    base: "Andaman & Nicobar",
+    tags: ["photographer"],
+    profileUrl: "https://www.instagram.com/photobible/",
+    storySlug: STORY,
+  },
+  {
+    id: "andaman-studio",
+    name: "Andaman Studio",
+    blurb:
+      "Havelock-based shoot team covering beach proposals, candle-light dinners, cinematic drone reels and pre/post wedding sessions.",
+    base: "Havelock Island",
+    tags: ["studio", "drone", "video"],
+    profileUrl: "https://andaman.studio/",
+    storySlug: STORY,
+  },
+  {
+    id: "arun-vlogger",
+    name: "Arun Vlogger",
+    handle: "@arunvlogger",
+    blurb:
+      "Cinematic travel-vlogger whose Havelock dive and drone episodes have been syndicated on Tripoto and YouTube.",
+    base: "Havelock Island",
+    tags: ["video", "drone"],
+    profileUrl: "https://www.youtube.com/@ArunVlogger",
+    referenceUrl:
+      "https://www.tripoto.com/port-blair/trips/ep-4-scuba-diving-cinematic-drone-footage-of-cleanest-beach-in-asia-havelock-island-andamans-601533c07906f",
+    referenceLabel: "Tripoto feature",
+    storySlug: STORY,
+  },
+  {
+    id: "travelinstylewithharman",
+    name: "Harmanpreet Kaur Sandhu",
+    handle: "@travelinstylewithharman",
+    blurb:
+      "Long-form travel creator with detailed Neil Island marine-trail reels and Andaman island guides.",
+    base: "Neil Island / travel",
+    tags: ["travel-media", "video"],
+    profileUrl: "https://www.instagram.com/travelinstylewithharman/",
+    referenceUrl:
+      "https://www.instagram.com/travelinstylewithharman/reel/C5lMjzyJKjg/",
+    referenceLabel: "Neil Island marine-trail reel",
+    storySlug: STORY,
+  },
 ];
 
 export const ALL_TAGS: CreatorTag[] = [
