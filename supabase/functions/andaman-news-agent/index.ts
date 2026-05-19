@@ -135,6 +135,67 @@ async function fetchHtml(url: string): Promise<string> {
   return await res.text();
 }
 
+// ---------- robots.txt compliance ----------
+// Polite, conservative parser: we only check for `User-agent: *` or our bot
+// name and respect any matching `Disallow:` rule against the target path.
+// Results are cached per-host for the lifetime of the function invocation.
+const robotsCache = new Map<string, { disallow: string[] }>();
+
+async function loadRobots(origin: string): Promise<{ disallow: string[] }> {
+  if (robotsCache.has(origin)) return robotsCache.get(origin)!;
+  const empty = { disallow: [] as string[] };
+  try {
+    const res = await fetch(`${origin}/robots.txt`, {
+      headers: { "user-agent": userAgent() },
+      redirect: "follow",
+    });
+    if (!res.ok) {
+      robotsCache.set(origin, empty);
+      return empty;
+    }
+    const text = await res.text();
+    const lines = text.split(/\r?\n/);
+    let active = false;
+    const disallow: string[] = [];
+    for (const raw of lines) {
+      const line = raw.replace(/#.*$/, "").trim();
+      if (!line) continue;
+      const [rawKey, ...rest] = line.split(":");
+      if (!rawKey || rest.length === 0) continue;
+      const key = rawKey.toLowerCase().trim();
+      const val = rest.join(":").trim();
+      if (key === "user-agent") {
+        const v = val.toLowerCase();
+        active = v === "*" || v.includes("andamanbazaarbot");
+      } else if (active && key === "disallow" && val) {
+        disallow.push(val);
+      }
+    }
+    const parsed = { disallow };
+    robotsCache.set(origin, parsed);
+    return parsed;
+  } catch {
+    robotsCache.set(origin, empty);
+    return empty;
+  }
+}
+
+async function isAllowedByRobots(url: string): Promise<boolean> {
+  try {
+    const u = new URL(url);
+    const robots = await loadRobots(`${u.protocol}//${u.host}`);
+    const path = u.pathname + u.search;
+    for (const rule of robots.disallow) {
+      if (!rule) continue;
+      if (rule === "/") return false;
+      if (path.startsWith(rule)) return false;
+    }
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 // ---------- scrapers (regex-based, edge-runtime safe) ----------
 
 function extractArticles(html: string, baseUrl: string, source: string): RawStory[] {
@@ -167,6 +228,10 @@ async function fetchSourceSafe(
   source: string,
 ): Promise<RawStory[]> {
   try {
+    if (!(await isAllowedByRobots(url))) {
+      console.warn(`[scrape] ${source} disallowed by robots.txt`);
+      return [];
+    }
     const html = await fetchHtml(url);
     return extractArticles(html, url, source).slice(0, 25);
   } catch (e) {
@@ -289,11 +354,21 @@ async function callLovableJSON(messages: Array<{ role: string; content: string }
 
 async function generateArticle(story: RawStory): Promise<GeneratedPost> {
   let sourceText = "";
+  let sourceAvailable = false;
   try {
+    if (!(await isAllowedByRobots(story.url))) {
+      throw new Error("robots_disallowed");
+    }
     const html = await fetchHtml(story.url);
-    sourceText = stripHtml(html).slice(0, 6000);
+    // Cap the extract small on purpose. We only need enough to understand
+    // the facts being reported — never enough to enable verbatim reuse.
+    sourceText = stripHtml(html).slice(0, 3500);
+    sourceAvailable = sourceText.length > 0;
   } catch {
+    // Fall back to the headline only. This keeps us reporting facts (which
+    // are not copyrightable) without ingesting the publisher's prose.
     sourceText = story.summary ?? story.title;
+    sourceAvailable = false;
   }
 
   const system = `You are a local Andaman journalist writing for AndamanBazaar.in (a travel + local news platform).
@@ -303,6 +378,14 @@ Voice & style — write like a real human, not a press release:
 - Use everyday words. Avoid corporate filler ("comprehensive", "paramount", "meticulous", "stakeholders", "in conclusion", "it is worth noting").
 - No throat-clearing intros, no "In a significant development". Start with the actual fact.
 - It is fine to use a contraction ("isn't", "won't"). It is fine to be slightly opinionated when a local would naturally be.
+
+Copyright & attribution (NON-NEGOTIABLE):
+- Report FACTS (who, what, when, where, how much). Facts are not copyrightable; the publisher's prose is.
+- Paraphrase everything in your own words. Do NOT copy sentences, distinctive phrasings, or the source's paragraph structure.
+- Direct quotes are allowed only when they are clearly a person speaking (a named official, witness, spokesperson). Keep each quote under 25 words, wrap it in double quotation marks, and attribute the speaker by name and role. Never quote the publisher's own narration.
+- Mention the originating publication by name at least once inside the body using natural attribution ("according to <source>", "<source> reports", etc.), in addition to the final Source link.
+- Do NOT reproduce any photos, captions, infographics, or pull-quotes from the source. Our cover image is generated separately.
+- If the source extract is empty or unclear, write only what is in the headline plus general, well-known Andaman context. Never invent details to fill space.
 
 Hard rules:
 - Output ONLY clean GitHub-Flavored Markdown for bodyMarkdown. No \`\`\` code fences wrapping the whole article. No HTML.
@@ -316,13 +399,14 @@ Hard rules:
   const user = `Original headline: ${story.title}
 Source URL: ${story.url}
 Source: ${story.source}
+Source extract available: ${sourceAvailable ? "yes" : "no — headline only, stay conservative"}
 
 Source extract:
 """
 ${sourceText}
 """
 
-Write a publishable article for AndamanBazaar.in.`;
+Write a publishable, original article for AndamanBazaar.in. Paraphrase in your own words, attribute ${story.source} in the body, and link to the source URL at the bottom.`;
 
   return await callLovableJSON([
     { role: "system", content: system },

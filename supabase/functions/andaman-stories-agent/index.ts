@@ -254,7 +254,14 @@ Hard rules:
 - No fabricated numbers, no fake quotes, no clickbait.
 - Tags: 3–6 short lowercase keywords (e.g. "havelock", "diving", "andaman", "2026").
 - coverAlt: ${ALT_MIN}–${ALT_MAX} chars, describes the visual scene AND the topic, mentions an Andaman place. Don't start with "image of" / "photo of".
-- seoTitle ≤ ${SEO_TITLE_MAX} chars; metaDescription ${META_DESC_MIN}–${META_DESC_MAX} chars.`;
+- seoTitle ≤ ${SEO_TITLE_MAX} chars; metaDescription ${META_DESC_MIN}–${META_DESC_MAX} chars.
+
+Originality & copyright (NON-NEGOTIABLE):
+- Write 100% original prose. Do NOT reproduce sentences, paragraphs, taglines, lyrics, poems, or marketing copy from other websites, guidebooks, brochures, or government brochures.
+- Do NOT include song lyrics, movie dialogue, or third-party brand slogans.
+- Do NOT name or recommend specific private hotels, resorts, dive shops, or tour operators by brand — describe categories ("a PADI-certified dive school", "a beachfront resort on Radhanagar") instead. This avoids implied endorsement and copied marketing copy.
+- Use only generally-known, encyclopedic facts about places, geography, climate, and culture. If you are not confident a fact is widely known, omit it rather than invent or recall it from a specific source.
+- Do NOT embed external images or refer to copyrighted photos. Our cover image is generated separately.`;
 
   const user = `Pick ONE evergreen topic from this pool that is NOT already covered by the recent posts listed below. Set the \`topic\` field to your chosen topic.
 

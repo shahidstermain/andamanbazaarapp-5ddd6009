@@ -41,6 +41,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost.tsx"));
 const AdminBlog = lazy(() => import("./pages/AdminBlog.tsx"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
+const EditorialPolicy = lazy(() => import("./pages/EditorialPolicy.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,7 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/editorial-policy" element={<EditorialPolicy />} />
               <Route path="/brand" element={<Brand />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/payment-test" element={<PaymentTestChecklist />} />
