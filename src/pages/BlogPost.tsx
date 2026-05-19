@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { Calendar, Clock, ChevronLeft, Loader2 } from "lucide-react";
 import { SeoHead } from "@/components/SeoHead";
 import { AuthorByline, AUTHOR_SHAHID } from "@/components/AuthorByline";
+import { SocialShareBar } from "@/components/SocialShareBar";
 import {
   fetchPostBySlug,
   fetchRelatedPosts,
@@ -157,6 +158,12 @@ export default function BlogPost() {
         )}
       </header>
 
+      <SocialShareBar
+        title={post.title}
+        description={post.excerpt ?? undefined}
+        path={`/blog/${post.slug}`}
+      />
+
       {post.cover_image_url && (
         <img
           src={post.cover_image_url}
@@ -196,6 +203,13 @@ export default function BlogPost() {
       </div>
 
       {post.slug === "andaman-island-creators-2026" && <InstagramCreatorsWidget />}
+
+      <SocialShareBar
+        title={post.title}
+        description={post.excerpt ?? undefined}
+        path={`/blog/${post.slug}`}
+        className="mt-4"
+      />
 
       <AuthorByline author={AUTHOR_SHAHID} variant="card" />
 
