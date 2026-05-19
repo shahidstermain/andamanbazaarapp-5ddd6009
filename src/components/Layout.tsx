@@ -103,6 +103,7 @@ export function Layout() {
               <Wand2 className="h-3.5 w-3.5" /> AI Planner
             </HeaderNavLink>
             <HeaderNavLink to="/blog">📰 Blog</HeaderNavLink>
+            <HeaderNavLink to="/creators">📸 Creators</HeaderNavLink>
             <HeaderNavLink to="/pricing">💎 Pricing</HeaderNavLink>
           </nav>
 
