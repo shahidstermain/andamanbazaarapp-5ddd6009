@@ -135,6 +135,67 @@ async function fetchHtml(url: string): Promise<string> {
   return await res.text();
 }
 
+// ---------- robots.txt compliance ----------
+// Polite, conservative parser: we only check for `User-agent: *` or our bot
+// name and respect any matching `Disallow:` rule against the target path.
+// Results are cached per-host for the lifetime of the function invocation.
+const robotsCache = new Map<string, { disallow: string[] }>();
+
+async function loadRobots(origin: string): Promise<{ disallow: string[] }> {
+  if (robotsCache.has(origin)) return robotsCache.get(origin)!;
+  const empty = { disallow: [] as string[] };
+  try {
+    const res = await fetch(`${origin}/robots.txt`, {
+      headers: { "user-agent": userAgent() },
+      redirect: "follow",
+    });
+    if (!res.ok) {
+      robotsCache.set(origin, empty);
+      return empty;
+    }
+    const text = await res.text();
+    const lines = text.split(/\r?\n/);
+    let active = false;
+    const disallow: string[] = [];
+    for (const raw of lines) {
+      const line = raw.replace(/#.*$/, "").trim();
+      if (!line) continue;
+      const [rawKey, ...rest] = line.split(":");
+      if (!rawKey || rest.length === 0) continue;
+      const key = rawKey.toLowerCase().trim();
+      const val = rest.join(":").trim();
+      if (key === "user-agent") {
+        const v = val.toLowerCase();
+        active = v === "*" || v.includes("andamanbazaarbot");
+      } else if (active && key === "disallow" && val) {
+        disallow.push(val);
+      }
+    }
+    const parsed = { disallow };
+    robotsCache.set(origin, parsed);
+    return parsed;
+  } catch {
+    robotsCache.set(origin, empty);
+    return empty;
+  }
+}
+
+async function isAllowedByRobots(url: string): Promise<boolean> {
+  try {
+    const u = new URL(url);
+    const robots = await loadRobots(`${u.protocol}//${u.host}`);
+    const path = u.pathname + u.search;
+    for (const rule of robots.disallow) {
+      if (!rule) continue;
+      if (rule === "/") return false;
+      if (path.startsWith(rule)) return false;
+    }
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 // ---------- scrapers (regex-based, edge-runtime safe) ----------
 
 function extractArticles(html: string, baseUrl: string, source: string): RawStory[] {
