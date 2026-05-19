@@ -19,7 +19,7 @@ export const AUTHOR_SHAHID: Author = {
   designation: "Database Support Engineer @ SingleStore · Founder, AndamanBazaar",
   location: "Port Blair, Andaman & Nicobar Islands",
   about:
-    "Born and raised in the Andamans, I write practical, local-first travel guides so visitors can plan trips without the usual confusion. By day I work on cloud databases and information security; by weekend I'm probably on a ferry or at a beach café.",
+    "Born and raised in the Andamans, I write practical, local-first travel guides so visitors can plan trips without the usual confusion. By day I work on cloud databases and information security; by weekend I will probably be cooking something in front of my desk using a terminal open.",
   website: "https://www.shahidster.tech/",
   websiteLabel: "shahidster.tech",
 };
