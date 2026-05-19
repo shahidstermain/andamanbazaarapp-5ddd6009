@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import logo from "@/assets/logo.webp";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 type Swatch = {
   name: string;
@@ -31,6 +32,12 @@ const SLANG = [
 ];
 
 export default function Brand() {
+  usePageSeo({
+    title: "Brand & Style Guide",
+    description:
+      "Colors, type, voice and slang that make AndamanBazaar feel like the islands — our brand and style guide.",
+    path: "/brand",
+  });
   return (
     <div className="space-y-12 pb-12">
       {/* Hero */}

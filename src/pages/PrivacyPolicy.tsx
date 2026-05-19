@@ -1,21 +1,16 @@
-import { useEffect } from "react";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 const SUPPORT_EMAIL = "support@andamanbazaar.in";
 const LAST_UPDATED = "25 April 2026";
 const EFFECTIVE_DATE = "25 April 2026";
 
 const PrivacyPolicy = () => {
-  useEffect(() => {
-    document.title = "Privacy Policy · AndamanBazaar";
-    const meta =
-      document.querySelector('meta[name="description"]') ??
-      Object.assign(document.createElement("meta"), { name: "description" });
-    meta.setAttribute(
-      "content",
+  usePageSeo({
+    title: "Privacy Policy",
+    description:
       "How AndamanBazaar collects, uses and protects your data — DPDP Act 2023 compliant privacy policy for the Andaman Islands marketplace.",
-    );
-    if (!meta.parentNode) document.head.appendChild(meta);
-  }, []);
+    path: "/privacy",
+  });
 
   return (
     <section className="prose prose-slate max-w-none py-8 dark:prose-invert">

@@ -1,21 +1,16 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 const CONTACT_EMAIL = "support@andamanbazaar.in";
 const LAST_UPDATED = "19 May 2026";
 
 const EditorialPolicy = () => {
-  useEffect(() => {
-    document.title = "Editorial & Copyright Policy · AndamanBazaar";
-    const meta =
-      document.querySelector('meta[name="description"]') ??
-      Object.assign(document.createElement("meta"), { name: "description" });
-    meta.setAttribute(
-      "content",
+  usePageSeo({
+    title: "Editorial & Copyright Policy",
+    description:
       "How AndamanBazaar sources, rewrites, attributes, and verifies news and blog content — our copyright, fair-use, and takedown policy.",
-    );
-    if (!meta.parentNode) document.head.appendChild(meta);
-  }, []);
+    path: "/editorial-policy",
+  });
 
   return (
     <section className="prose prose-slate max-w-none py-8 dark:prose-invert">

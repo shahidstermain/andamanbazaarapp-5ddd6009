@@ -9,8 +9,10 @@ const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const STATIC_URLS = [
   "/",
   "/listings",
+  "/sell",
   "/trip-planner",
   "/blog",
+  "/creators",
   "/pricing",
   "/whats-new",
   "/brand",
