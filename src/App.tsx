@@ -42,6 +42,7 @@ const AdminBlog = lazy(() => import("./pages/AdminBlog.tsx"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const EditorialPolicy = lazy(() => import("./pages/EditorialPolicy.tsx"));
+const Creators = lazy(() => import("./pages/Creators.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => {
               <Route path="/admin/price-qa" element={<AdminPriceQA />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/creators" element={<Creators />} />
               <Route path="/admin/blog" element={<AdminBlog />} />
               <Route path="/admin/blog/new" element={<AdminBlogEditor />} />
               <Route path="/admin/blog/edit/:id" element={<AdminBlogEditor />} />
