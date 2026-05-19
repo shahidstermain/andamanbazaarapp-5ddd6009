@@ -70,10 +70,41 @@ export function InstagramCreatorsWidget() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    void loadEmbedScript();
-    // Re-process when the component mounts in case the script was already cached.
-    const id = window.setTimeout(() => window.instgrm?.Embeds.process(), 600);
-    return () => window.clearTimeout(id);
+    const el = containerRef.current;
+    if (!el) return;
+
+    let processTimer: number | undefined;
+    const trigger = () => {
+      void loadEmbedScript();
+      processTimer = window.setTimeout(
+        () => window.instgrm?.Embeds.process(),
+        600
+      );
+    };
+
+    // Fallback for browsers without IntersectionObserver.
+    if (typeof IntersectionObserver === "undefined") {
+      trigger();
+      return () => {
+        if (processTimer) window.clearTimeout(processTimer);
+      };
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          trigger();
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px 0px" }
+    );
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (processTimer) window.clearTimeout(processTimer);
+    };
   }, []);
 
   return (
