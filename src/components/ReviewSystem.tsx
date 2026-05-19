@@ -79,7 +79,7 @@ export function ReviewSystem({ listingId, category }: ReviewSystemProps) {
             className={`h-4 w-4 ${
               star <= value 
                 ? "fill-yellow-400 text-yellow-400" 
-                : "text-gray-300"
+                : "text-muted-foreground/60"
             }`}
           />
         </button>
