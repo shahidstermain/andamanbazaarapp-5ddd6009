@@ -375,7 +375,19 @@ export const islandCreators: IslandCreator[] = [
     referenceLabel: "Neil Island marine-trail reel",
     storySlug: STORY,
   },
+  {
+    id: "capturewithmoment",
+    name: "Kapil (capturewithmoment)",
+    handle: "@capturewithmoment",
+    blurb:
+      "Andaman-based photographer capturing intimate island moments — golden-hour portraits, beach weddings and street life across Port Blair, Havelock and Neil.",
+    base: "Andaman",
+    tags: ["photographer", "studio"],
+    profileUrl: "https://www.instagram.com/capturewithmoment/",
+    storySlug: STORY,
+  },
 ];
+
 
 export const ALL_TAGS: CreatorTag[] = [
   "photographer",
