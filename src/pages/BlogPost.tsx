@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { InstagramCreatorsWidget } from "@/components/blog/InstagramCreatorsWidget";
 import remarkGfm from "remark-gfm";
-import { Calendar, Clock, ChevronLeft, Loader2 } from "lucide-react";
+import { Calendar, Clock, ChevronLeft, Loader2, Sparkles } from "lucide-react";
 import { SeoHead } from "@/components/SeoHead";
 import { AuthorByline, AUTHOR_SHAHID } from "@/components/AuthorByline";
 import { SocialShareBar } from "@/components/SocialShareBar";
