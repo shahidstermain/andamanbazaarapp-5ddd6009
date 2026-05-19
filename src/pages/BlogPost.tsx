@@ -158,6 +158,12 @@ export default function BlogPost() {
         )}
       </header>
 
+      <SocialShareBar
+        title={post.title}
+        description={post.excerpt ?? undefined}
+        path={`/blog/${post.slug}`}
+      />
+
       {post.cover_image_url && (
         <img
           src={post.cover_image_url}
