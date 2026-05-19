@@ -167,6 +167,12 @@ export default function BlogPost() {
         utmSource={featuredHandle || undefined}
       />
 
+      <FeaturedBadgeCta
+        slug={post.slug}
+        title={post.title}
+        handle={featuredHandle}
+      />
+
       {post.cover_image_url && (
         <img
           src={post.cover_image_url}
@@ -213,6 +219,12 @@ export default function BlogPost() {
         path={`/blog/${post.slug}`}
         utmSource={featuredHandle || undefined}
         className="mt-4"
+      />
+
+      <FeaturedBadgeCta
+        slug={post.slug}
+        title={post.title}
+        handle={featuredHandle}
       />
 
       <AuthorByline author={AUTHOR_SHAHID} variant="card" />
