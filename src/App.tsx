@@ -41,6 +41,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost.tsx"));
 const AdminBlog = lazy(() => import("./pages/AdminBlog.tsx"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
+const EditorialPolicy = lazy(() => import("./pages/EditorialPolicy.tsx"));
 
 const queryClient = new QueryClient();
 
