@@ -1,0 +1,26 @@
+# AndamanBazaar
+
+> Andaman & Nicobar Islands classifieds, news, stories, and trip planning — buy, sell, and discover across Port Blair, Havelock, Neil, and beyond.
+
+AndamanBazaar is a community marketplace and travel guide for the Andaman & Nicobar Islands. Locals and visitors post classified listings (vehicles, rentals, services, gear), browse island news and long-form stories, and plan trips with recommendations for stays, activities, and ferries.
+
+## Pages
+
+- [Home](/): Overview of the marketplace, latest listings, news, and stories.
+- [Listings](/listings): Browse all active classified listings across the islands.
+- [Sell on AndamanBazaar](/sell): Post a free classified listing.
+- [Trip Planner](/trip-planner): Build a personalized Andaman itinerary with stay, activity, and ferry recommendations.
+- [Pricing](/pricing): Plans and featured-listing pricing.
+- [Contact](/contact): Get in touch with the AndamanBazaar team.
+- [What's New](/whats-new): Recent product updates and release notes.
+- [Brand](/brand): Logos, colors, and brand assets.
+
+## Content
+
+- [Blog, news & stories](/blog): Andaman news, travel stories, and guides written and curated by the AndamanBazaar editorial team.
+
+## Policies
+
+- [Editorial policy](/editorial-policy): How we source news and stories, attribution rules, and takedown contact.
+- [Privacy policy](/privacy): How we handle your data.
+- [Terms of service](/terms): Terms for using AndamanBazaar.
