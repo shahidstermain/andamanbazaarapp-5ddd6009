@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import { InstagramCreatorsWidget } from "@/components/blog/InstagramCreatorsWidget";
 import remarkGfm from "remark-gfm";
 import { Calendar, Clock, ChevronLeft, Loader2 } from "lucide-react";
 import { SeoHead } from "@/components/SeoHead";
@@ -193,6 +194,8 @@ export default function BlogPost() {
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
       </div>
+
+      {post.slug === "andaman-island-creators-2026" && <InstagramCreatorsWidget />}
 
       <AuthorByline author={AUTHOR_SHAHID} variant="card" />
 
