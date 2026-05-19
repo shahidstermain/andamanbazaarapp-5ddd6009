@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/listings";
 import { Button } from "@/components/ui/button";
 import { VerifiedLocalBadge } from "@/components/VerifiedLocalBadge";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 type FavRow = {
   id: string;
@@ -24,6 +25,13 @@ type FavRow = {
 };
 
 const Favorites = () => {
+  usePageSeo({
+    title: "Your Favorites",
+    description:
+      "Listings you've saved on AndamanBazaar — your shortlist of island finds in one place.",
+    path: "/favorites",
+    noIndex: true,
+  });
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
