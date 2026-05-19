@@ -15,6 +15,10 @@ interface SocialShareBarProps {
   className?: string;
   /** Compact icon-only variant. */
   compact?: boolean;
+  /** Featured-person handle. When set, all share links are tagged with utm_source=<handle>. */
+  utmSource?: string;
+  /** Optional campaign label (defaults to "featured-share"). */
+  utmCampaign?: string;
 }
 
 const SITE_URL = "https://andamanbazaar.in";
@@ -29,6 +33,26 @@ function resolveUrl(path?: string, baseUrl: string = SITE_URL): string {
   return new URL(path ?? "/", baseUrl).toString();
 }
 
+function withUtm(
+  url: string,
+  network: string,
+  utmSource?: string,
+  utmCampaign: string = "featured-share",
+): string {
+  try {
+    const u = new URL(url);
+    // Strip any pre-existing 'as' helper param so it never leaks into shared links.
+    u.searchParams.delete("as");
+    u.searchParams.set("utm_source", utmSource || network);
+    u.searchParams.set("utm_medium", utmSource ? "social" : network);
+    u.searchParams.set("utm_campaign", utmCampaign);
+    if (utmSource) u.searchParams.set("utm_content", network);
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 export function SocialShareBar({
   title,
   description,
@@ -36,46 +60,54 @@ export function SocialShareBar({
   baseUrl,
   className,
   compact = false,
+  utmSource,
+  utmCampaign,
 }: SocialShareBarProps) {
   const { toast } = useToast();
-  const shareUrl = resolveUrl(path, baseUrl);
-  const encodedUrl = encodeURIComponent(shareUrl);
+  const baseShareUrl = resolveUrl(path, baseUrl);
+  // URL used for "Copy link" / native share — keep utm_source as the handle (or "direct").
+  const copyUrl = withUtm(baseShareUrl, "copy", utmSource, utmCampaign);
   const encodedTitle = encodeURIComponent(title);
-  const encodedText = encodeURIComponent(description ? `${title} — ${description}` : title);
+  const shareText = description ? `${title} — ${description}` : title;
+
+  const urlFor = (network: string) =>
+    encodeURIComponent(withUtm(baseShareUrl, network, utmSource, utmCampaign));
+  const textFor = (network: string) =>
+    encodeURIComponent(`${shareText} ${withUtm(baseShareUrl, network, utmSource, utmCampaign)}`);
 
   const links = [
     {
       key: "whatsapp",
       label: "WhatsApp",
-      href: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+      href: `https://wa.me/?text=${textFor("whatsapp")}`,
       icon: MessageCircle,
       color: "text-[#25D366] hover:bg-[#25D366]/10",
     },
     {
       key: "twitter",
       label: "X (Twitter)",
-      href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+      href: `https://twitter.com/intent/tweet?url=${urlFor("twitter")}&text=${encodedTitle}`,
       icon: Twitter,
       color: "text-foreground hover:bg-muted",
     },
     {
       key: "facebook",
       label: "Facebook",
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      href: `https://www.facebook.com/sharer/sharer.php?u=${urlFor("facebook")}`,
       icon: Facebook,
       color: "text-[#1877F2] hover:bg-[#1877F2]/10",
     },
     {
       key: "linkedin",
       label: "LinkedIn",
-      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${urlFor("linkedin")}`,
       icon: Linkedin,
       color: "text-[#0A66C2] hover:bg-[#0A66C2]/10",
     },
     {
       key: "telegram",
       label: "Telegram",
-      href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
+      href: `https://t.me/share/url?url=${urlFor("telegram")}&text=${encodedTitle}`,
       icon: Send,
       color: "text-[#229ED9] hover:bg-[#229ED9]/10",
     },
@@ -83,17 +115,17 @@ export function SocialShareBar({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(copyUrl);
       toast({ title: "Link copied", description: "Paste it anywhere to share." });
     } catch {
-      toast({ title: "Could not copy link", description: shareUrl });
+      toast({ title: "Could not copy link", description: copyUrl });
     }
   };
 
   const handleNativeShare = async () => {
     if (typeof navigator === "undefined" || !navigator.share) return;
     try {
-      await navigator.share({ title, text: description, url: shareUrl });
+      await navigator.share({ title, text: description, url: copyUrl });
     } catch {
       /* user dismissed */
     }
@@ -111,7 +143,7 @@ export function SocialShareBar({
       aria-label="Share this story"
     >
       <span className="mr-1 hidden text-xs font-medium text-muted-foreground sm:inline">
-        Share:
+        {utmSource ? `Sharing as @${utmSource}:` : "Share:"}
       </span>
 
       {links.map(({ key, label, href, icon: Icon, color }) => (

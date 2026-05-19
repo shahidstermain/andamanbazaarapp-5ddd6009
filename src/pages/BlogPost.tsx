@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { InstagramCreatorsWidget } from "@/components/blog/InstagramCreatorsWidget";
 import remarkGfm from "remark-gfm";
@@ -23,6 +23,8 @@ type Related = Pick<
 
 export default function BlogPost() {
   const { slug = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const featuredHandle = (searchParams.get("as") || "").trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "");
   const [post, setPost] = useState<Post | null>(null);
   const [related, setRelated] = useState<Related[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,6 +164,7 @@ export default function BlogPost() {
         title={post.title}
         description={post.excerpt ?? undefined}
         path={`/blog/${post.slug}`}
+        utmSource={featuredHandle || undefined}
       />
 
       {post.cover_image_url && (
@@ -208,6 +211,7 @@ export default function BlogPost() {
         title={post.title}
         description={post.excerpt ?? undefined}
         path={`/blog/${post.slug}`}
+        utmSource={featuredHandle || undefined}
         className="mt-4"
       />
 
