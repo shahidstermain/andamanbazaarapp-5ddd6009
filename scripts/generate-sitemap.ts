@@ -11,6 +11,10 @@ const STATIC_URLS = [
   "/listings",
   "/trip-planner",
   "/blog",
+  "/pricing",
+  "/whats-new",
+  "/brand",
+  "/editorial-policy",
   "/contact",
   "/privacy",
   "/terms",
@@ -25,6 +29,7 @@ function escapeXml(s: string): string {
 async function main() {
   const today = new Date().toISOString().slice(0, 10);
   let posts: Array<{ slug: string; updated_at: string | null; published_at: string | null }> = [];
+  let listings: Array<{ id: string; updated_at: string | null; created_at: string | null }> = [];
 
   if (SUPABASE_URL && SUPABASE_KEY) {
     try {
@@ -39,6 +44,18 @@ async function main() {
         console.warn("[sitemap] supabase error:", error.message);
       } else {
         posts = data ?? [];
+      }
+
+      const { data: lData, error: lErr } = await supabase
+        .from("listings")
+        .select("id, updated_at, created_at")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+      if (lErr) {
+        console.warn("[sitemap] supabase listings error:", lErr.message);
+      } else {
+        listings = lData ?? [];
       }
     } catch (e) {
       console.warn("[sitemap] fetch failed:", e);
@@ -61,12 +78,19 @@ async function main() {
         return `  <url><loc>${SITE}/blog/${escapeXml(p.slug)}</loc><lastmod>${lm}</lastmod><changefreq>weekly</changefreq></url>`;
       })
       .join("\n") +
+    (listings.length ? "\n" : "") +
+    listings
+      .map((l) => {
+        const lm = (l.updated_at ?? l.created_at ?? today).slice(0, 10);
+        return `  <url><loc>${SITE}/listings/${escapeXml(l.id)}</loc><lastmod>${lm}</lastmod><changefreq>weekly</changefreq></url>`;
+      })
+      .join("\n") +
     `\n</urlset>\n`;
 
   const outPath = resolve(process.cwd(), "public/sitemap.xml");
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, xml, "utf8");
-  console.log(`[sitemap] wrote ${posts.length} posts + ${STATIC_URLS.length} static urls → public/sitemap.xml`);
+  console.log(`[sitemap] wrote ${posts.length} posts + ${listings.length} listings + ${STATIC_URLS.length} static urls → public/sitemap.xml`);
 }
 
 main().catch((e) => {
