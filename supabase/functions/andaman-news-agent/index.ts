@@ -749,7 +749,7 @@ function normalizePost(post: GeneratedPost): GeneratedPost {
     ]);
   }
 
-  return { ...post, metaDescription, seoTitle, headline, coverAlt };
+  return { ...post, bodyMarkdown, metaDescription, seoTitle, headline, coverAlt };
 }
 
 function padToMin(text: string, min: number, max: number, fillers: string[]): string {
