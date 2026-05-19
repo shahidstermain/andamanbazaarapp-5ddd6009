@@ -72,6 +72,7 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/editorial-policy" element={<EditorialPolicy />} />
               <Route path="/brand" element={<Brand />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/payment-test" element={<PaymentTestChecklist />} />
