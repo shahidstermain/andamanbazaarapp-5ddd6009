@@ -266,6 +266,7 @@ const TermsOfService = () => {
       or via the <a href="/contact">Contact</a> page.
     </p>
   </article>
-);
+  );
+};
 
 export default TermsOfService;
