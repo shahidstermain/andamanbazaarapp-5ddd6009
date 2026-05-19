@@ -1648,6 +1648,7 @@ export type Database = {
           total_reviews: number
         }[]
       }
+      get_publish_alert_secret: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
