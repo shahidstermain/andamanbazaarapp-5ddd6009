@@ -607,9 +607,9 @@ Deno.serve(async (req) => {
     const slug = await ensureUniqueSlug(supabase, slugify(post.headline));
     const coverUrl = await generateCover(post.headline, post.coverAlt);
 
-    const contentWithCover = coverUrl
-      ? `![${post.coverAlt.replace(/[\[\]]/g, "")}](${coverUrl})\n\n${post.bodyMarkdown}`
-      : post.bodyMarkdown;
+    // The post page renders cover_image_url above the body, so do not
+    // duplicate it inside the markdown.
+    const contentWithCover = post.bodyMarkdown;
 
     const { error: insertErr } = await supabase.from("posts").insert({
       title: post.headline,
