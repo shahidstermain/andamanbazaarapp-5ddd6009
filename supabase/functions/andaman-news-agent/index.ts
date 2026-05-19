@@ -228,6 +228,10 @@ async function fetchSourceSafe(
   source: string,
 ): Promise<RawStory[]> {
   try {
+    if (!(await isAllowedByRobots(url))) {
+      console.warn(`[scrape] ${source} disallowed by robots.txt`);
+      return [];
+    }
     const html = await fetchHtml(url);
     return extractArticles(html, url, source).slice(0, 25);
   } catch (e) {
