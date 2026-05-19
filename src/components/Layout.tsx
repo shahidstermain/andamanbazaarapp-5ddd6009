@@ -199,6 +199,7 @@ export function Layout() {
                 { to: "/whats-new", label: "What's new" },
                 { to: "/privacy", label: "Privacy" },
                 { to: "/terms",   label: "Terms" },
+                { to: "/editorial-policy", label: "Editorial policy" },
                 { to: "/brand",   label: "Brand" },
               ].map(({ to, label }) => (
                 <li key={to}>
