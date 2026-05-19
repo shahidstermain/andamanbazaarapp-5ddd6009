@@ -354,11 +354,21 @@ async function callLovableJSON(messages: Array<{ role: string; content: string }
 
 async function generateArticle(story: RawStory): Promise<GeneratedPost> {
   let sourceText = "";
+  let sourceAvailable = false;
   try {
+    if (!(await isAllowedByRobots(story.url))) {
+      throw new Error("robots_disallowed");
+    }
     const html = await fetchHtml(story.url);
-    sourceText = stripHtml(html).slice(0, 6000);
+    // Cap the extract small on purpose. We only need enough to understand
+    // the facts being reported — never enough to enable verbatim reuse.
+    sourceText = stripHtml(html).slice(0, 3500);
+    sourceAvailable = sourceText.length > 0;
   } catch {
+    // Fall back to the headline only. This keeps us reporting facts (which
+    // are not copyrightable) without ingesting the publisher's prose.
     sourceText = story.summary ?? story.title;
+    sourceAvailable = false;
   }
 
   const system = `You are a local Andaman journalist writing for AndamanBazaar.in (a travel + local news platform).
@@ -368,6 +378,14 @@ Voice & style — write like a real human, not a press release:
 - Use everyday words. Avoid corporate filler ("comprehensive", "paramount", "meticulous", "stakeholders", "in conclusion", "it is worth noting").
 - No throat-clearing intros, no "In a significant development". Start with the actual fact.
 - It is fine to use a contraction ("isn't", "won't"). It is fine to be slightly opinionated when a local would naturally be.
+
+Copyright & attribution (NON-NEGOTIABLE):
+- Report FACTS (who, what, when, where, how much). Facts are not copyrightable; the publisher's prose is.
+- Paraphrase everything in your own words. Do NOT copy sentences, distinctive phrasings, or the source's paragraph structure.
+- Direct quotes are allowed only when they are clearly a person speaking (a named official, witness, spokesperson). Keep each quote under 25 words, wrap it in double quotation marks, and attribute the speaker by name and role. Never quote the publisher's own narration.
+- Mention the originating publication by name at least once inside the body using natural attribution ("according to <source>", "<source> reports", etc.), in addition to the final Source link.
+- Do NOT reproduce any photos, captions, infographics, or pull-quotes from the source. Our cover image is generated separately.
+- If the source extract is empty or unclear, write only what is in the headline plus general, well-known Andaman context. Never invent details to fill space.
 
 Hard rules:
 - Output ONLY clean GitHub-Flavored Markdown for bodyMarkdown. No \`\`\` code fences wrapping the whole article. No HTML.
@@ -381,13 +399,14 @@ Hard rules:
   const user = `Original headline: ${story.title}
 Source URL: ${story.url}
 Source: ${story.source}
+Source extract available: ${sourceAvailable ? "yes" : "no — headline only, stay conservative"}
 
 Source extract:
 """
 ${sourceText}
 """
 
-Write a publishable article for AndamanBazaar.in.`;
+Write a publishable, original article for AndamanBazaar.in. Paraphrase in your own words, attribute ${story.source} in the body, and link to the source URL at the bottom.`;
 
   return await callLovableJSON([
     { role: "system", content: system },
