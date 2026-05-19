@@ -67,6 +67,28 @@ export default function Blog() {
         title="Andaman Stories, News & Travel Blog | AndamanBazaar"
         description="Daily stories, ferry updates, scuba tips, and island news from the Andamans — written by locals at AndamanBazaar."
         type="website"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Andaman Stories, News & Travel Blog",
+          description:
+            "Daily stories, ferry updates, scuba tips, and island news from the Andamans — written by locals at AndamanBazaar.",
+          url: "https://andamanbazaar.in/blog",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "AndamanBazaar",
+            url: "https://andamanbazaar.in",
+          },
+          mainEntity: {
+            "@type": "ItemList",
+            itemListElement: items.map((p, i) => ({
+              "@type": "ListItem",
+              position: i + 1 + (page - 1) * PAGE_SIZE,
+              url: `https://andamanbazaar.in/blog/${p.slug}`,
+              name: p.title,
+            })),
+          },
+        }}
       />
 
       <header className="space-y-2">

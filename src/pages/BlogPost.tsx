@@ -86,6 +86,12 @@ export default function BlogPost() {
     dateModified: post.updated_at,
     keywords: post.tags.join(", "),
     mainEntityOfPage: url,
+    author: {
+      "@type": "Person",
+      name: AUTHOR_SHAHID.name,
+      url: AUTHOR_SHAHID.website,
+      jobTitle: AUTHOR_SHAHID.designation,
+    },
     publisher: {
       "@type": "Organization",
       name: "AndamanBazaar",
