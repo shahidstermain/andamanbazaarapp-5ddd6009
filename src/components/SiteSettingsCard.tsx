@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteMeta } from "@/hooks/useSiteMeta";
-import { updateSiteSettings } from "@/lib/siteSettings";
+import { updateSiteSettings, fetchAdminSiteSettings } from "@/lib/siteSettings";
 
 export function SiteSettingsCard() {
   const { user } = useAuth();
@@ -56,6 +56,24 @@ export function SiteSettingsCard() {
       active = false;
     };
   }, [user]);
+
+  // When admin, load the full settings (including alert config) directly from the table.
+  useEffect(() => {
+    if (!isAdmin) return;
+    let active = true;
+    fetchAdminSiteSettings().then((s) => {
+      if (!active) return;
+      setAlertsEnabled(s.visitor_alerts_enabled);
+      setInAppEnabled(s.visitor_alerts_in_app);
+      setEmailEnabled(s.visitor_alerts_email_enabled);
+      setAlertEmail(s.visitor_alert_email ?? "");
+      setWebhookEnabled(s.visitor_alerts_webhook_enabled);
+      setWebhookUrl(s.visitor_alert_webhook_url ?? "");
+    });
+    return () => {
+      active = false;
+    };
+  }, [isAdmin]);
 
   if (isAdmin === null) return null;
   if (!isAdmin) return null;
