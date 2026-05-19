@@ -943,11 +943,10 @@ Deno.serve(async (req) => {
     const slug = await ensureUniqueSlug(supabase, slugify(post.headline));
     const coverUrl = await generateCoverImage(post.headline, post.coverAlt);
 
-    // Embed the cover image with proper alt text at the top of the markdown
-    // so it renders in the post body with SEO-friendly alt attribute.
-    const contentWithCover = coverUrl
-      ? `![${post.coverAlt.replace(/[\[\]]/g, "")}](${coverUrl})\n\n${post.bodyMarkdown}`
-      : post.bodyMarkdown;
+    // NOTE: do NOT embed the cover image at the top of the markdown — the
+    // post page already renders cover_image_url above the body. Embedding it
+    // here produced duplicate hero images.
+    const contentWithCover = post.bodyMarkdown;
 
     const { error: insertErr } = await supabase.from("posts").insert({
       title: post.headline,
