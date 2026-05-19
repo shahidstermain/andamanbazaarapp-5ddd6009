@@ -19,9 +19,39 @@ interface SocialShareBarProps {
   utmSource?: string;
   /** Optional campaign label (defaults to "featured-share"). */
   utmCampaign?: string;
+  /**
+   * When set, social network buttons share via the server-rendered
+   * /share endpoint so WhatsApp / Facebook / LinkedIn / iMessage / Slack
+   * see per-target og:* tags instead of the generic site card.
+   * "blog" → shareId is the post slug. "listing" → shareId is the listing UUID.
+   */
+  shareKind?: "blog" | "listing";
+  shareId?: string;
 }
 
 const SITE_URL = "https://andamanbazaar.in";
+const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined;
+const SHARE_BASE = SUPABASE_PROJECT_ID
+  ? `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/share`
+  : null;
+
+/**
+ * URL that social-network crawlers will fetch. Returns a server-rendered
+ * page with per-target og:* tags that redirects humans to the canonical
+ * page. Falls back to the canonical URL when the share kind is unknown.
+ */
+function buildPreviewUrl(canonical: string, shareKind?: "blog" | "listing", shareId?: string): string {
+  if (!SHARE_BASE || !shareKind || !shareId) return canonical;
+  // Pass through query string (utm + ?as=) so the redirect preserves attribution.
+  let query = "";
+  try {
+    const u = new URL(canonical);
+    query = u.search;
+  } catch {
+    /* ignore */
+  }
+  return `${SHARE_BASE}/${shareKind}/${encodeURIComponent(shareId)}${query}`;
+}
 
 function resolveUrl(path?: string, baseUrl: string = SITE_URL): string {
   if (path && /^https?:\/\//.test(path)) return path;
@@ -62,6 +92,8 @@ export function SocialShareBar({
   compact = false,
   utmSource,
   utmCampaign,
+  shareKind,
+  shareId,
 }: SocialShareBarProps) {
   const { toast } = useToast();
   const baseShareUrl = resolveUrl(path, baseUrl);
@@ -70,10 +102,16 @@ export function SocialShareBar({
   const encodedTitle = encodeURIComponent(title);
   const shareText = description ? `${title} — ${description}` : title;
 
-  const urlFor = (network: string) =>
-    encodeURIComponent(withUtm(baseShareUrl, network, utmSource, utmCampaign));
+  // Networks that fetch URL previews server-side (no JS) get the /share
+  // endpoint so they see per-target og:* tags. Networks that render JS
+  // previews (Twitter, Telegram) can use the canonical URL directly.
+  const previewableFor = (network: string) => {
+    const canonical = withUtm(baseShareUrl, network, utmSource, utmCampaign);
+    return buildPreviewUrl(canonical, shareKind, shareId);
+  };
+  const urlFor = (network: string) => encodeURIComponent(previewableFor(network));
   const textFor = (network: string) =>
-    encodeURIComponent(`${shareText} ${withUtm(baseShareUrl, network, utmSource, utmCampaign)}`);
+    encodeURIComponent(`${shareText} ${previewableFor(network)}`);
 
   const links = [
     {
