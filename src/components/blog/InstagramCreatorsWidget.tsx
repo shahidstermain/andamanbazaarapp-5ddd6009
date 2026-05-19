@@ -28,8 +28,8 @@ const PROFILE_HANDLES: { handle: string; name: string; url: string }[] = [
   { handle: "@blackshade_98", name: "Arshad Rehman", url: "https://www.instagram.com/blackshade_98/" },
   { handle: "@thewave.andaman", name: "The Wave Andaman", url: "https://www.instagram.com/thewave.andaman/" },
   { handle: "@experienceandamans", name: "Experience Andamans", url: "https://www.instagram.com/experienceandamans/" },
-  { handle: "@PhotoBible", name: "PhotoBible", url: "https://www.instagram.com/photobible/" },
   { handle: "@capturewithmoment", name: "Kapil", url: "https://www.instagram.com/capturewithmoment/" },
+  { handle: "@PhotoBible", name: "PhotoBible", url: "https://www.instagram.com/photobible/" },
 ];
 
 declare global {
