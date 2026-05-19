@@ -164,6 +164,7 @@ export default function BlogPost() {
         title={post.title}
         description={post.excerpt ?? undefined}
         path={`/blog/${post.slug}`}
+        utmSource={featuredHandle || undefined}
       />
 
       {post.cover_image_url && (
@@ -210,6 +211,7 @@ export default function BlogPost() {
         title={post.title}
         description={post.excerpt ?? undefined}
         path={`/blog/${post.slug}`}
+        utmSource={featuredHandle || undefined}
         className="mt-4"
       />
 
