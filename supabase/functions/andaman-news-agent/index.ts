@@ -678,7 +678,30 @@ function clampHeadlineForSlug(headline: string, maxSlug: number): string {
   return h.slice(0, Math.max(10, maxSlug));
 }
 
+// Strips LLM artefacts that occasionally bleed into bodyMarkdown:
+// surrounding ``` code fences, non-Latin/non-Devanagari scripts (Cyrillic,
+// CJK, etc.), and any leading hero `![..](..)` image (the post page already
+// renders cover_image_url above the body).
+function sanitizeBody(md: string): string {
+  let s = (md ?? "").trim();
+  // Unwrap if the model wrapped the whole article in a ``` ... ``` fence.
+  const fenceMatch = s.match(/^```(?:[a-zA-Z]+)?\s*\n([\s\S]*?)\n?```\s*$/);
+  if (fenceMatch) s = fenceMatch[1].trim();
+  // Drop opening cover image line so we never duplicate the page hero.
+  s = s.replace(/^!\[[^\]]*\]\([^)]+\)\s*\n+/, "");
+  // Remove paragraphs that are mostly Cyrillic / CJK / other non-English bleed.
+  s = s
+    .split(/\n{2,}/)
+    .filter((para) => {
+      const nonLatin = (para.match(/[\u0400-\u04FF\u0500-\u052F\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/g) ?? []).length;
+      return nonLatin < 8; // tolerate a stray glyph, drop full sentences
+    })
+    .join("\n\n");
+  return s.trim();
+}
+
 function normalizePost(post: GeneratedPost): GeneratedPost {
+  const bodyMarkdown = sanitizeBody(post.bodyMarkdown);
   let metaDescription =
     post.metaDescription && post.metaDescription.length > META_DESC_MAX
       ? smartTruncate(post.metaDescription, META_DESC_MAX)
