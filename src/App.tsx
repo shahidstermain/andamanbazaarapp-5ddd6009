@@ -44,6 +44,7 @@ const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const EditorialPolicy = lazy(() => import("./pages/EditorialPolicy.tsx"));
 const Creators = lazy(() => import("./pages/Creators.tsx"));
 const FeaturedBadge = lazy(() => import("./pages/FeaturedBadge.tsx"));
+const FeaturedShortLink = lazy(() => import("./pages/FeaturedShortLink.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const App = () => {
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/creators" element={<Creators />} />
               <Route path="/badge" element={<FeaturedBadge />} />
+              <Route path="/f/:handle" element={<FeaturedShortLink />} />
               <Route path="/admin/blog" element={<AdminBlog />} />
               <Route path="/admin/blog/new" element={<AdminBlogEditor />} />
               <Route path="/admin/blog/edit/:id" element={<AdminBlogEditor />} />
