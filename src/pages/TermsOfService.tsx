@@ -1,6 +1,15 @@
+import { usePageSeo } from "@/hooks/usePageSeo";
+
 const LAST_UPDATED = "25 April 2026";
 
-const TermsOfService = () => (
+const TermsOfService = () => {
+  usePageSeo({
+    title: "Terms of Service",
+    description:
+      "Terms of service for AndamanBazaar — the hyperlocal classifieds marketplace and AI trip planner for the Andaman & Nicobar Islands.",
+    path: "/terms",
+  });
+  return (
   <article className="prose prose-slate max-w-none py-8 dark:prose-invert">
     <h1>Terms of Service</h1>
     <p className="text-sm text-muted-foreground">Last updated: {LAST_UPDATED}</p>
@@ -257,6 +266,7 @@ const TermsOfService = () => (
       or via the <a href="/contact">Contact</a> page.
     </p>
   </article>
-);
+  );
+};
 
 export default TermsOfService;

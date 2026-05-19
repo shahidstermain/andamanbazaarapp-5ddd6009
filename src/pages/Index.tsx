@@ -43,7 +43,7 @@ export default function Index() {
 
   usePageSeo({
     title: "AndamanBazaar — Buy, Sell & Discover Across the Islands",
-    description: "The hyperlocal marketplace for the Andaman & Nicobar Islands. Buy, sell, and discover local experiences across Port Blair, Havelock, Neil, Diglipur and beyond. Boat pe bharosa.",
+    description: "Hyperlocal marketplace for the Andaman & Nicobar Islands. Buy, sell and discover local experiences across Port Blair, Havelock, Neil and Diglipur.",
     path: "/",
     jsonLd: {
       "@context": "https://schema.org",
