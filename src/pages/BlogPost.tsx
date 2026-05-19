@@ -165,6 +165,8 @@ export default function BlogPost() {
         description={post.excerpt ?? undefined}
         path={`/blog/${post.slug}`}
         utmSource={featuredHandle || undefined}
+        shareKind="blog"
+        shareId={post.slug}
       />
 
       <FeaturedBadgeCta
@@ -218,6 +220,8 @@ export default function BlogPost() {
         description={post.excerpt ?? undefined}
         path={`/blog/${post.slug}`}
         utmSource={featuredHandle || undefined}
+        shareKind="blog"
+        shareId={post.slug}
         className="mt-4"
       />
 
