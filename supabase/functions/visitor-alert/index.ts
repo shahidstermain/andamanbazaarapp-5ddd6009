@@ -72,6 +72,21 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey);
 
+    // Anti-abuse: only enrich alerts for sessions that actually exist in visitor_events,
+    // which can only be inserted via the SECURITY DEFINER record_visitor RPC.
+    // This blocks unauthenticated spam without requiring user JWTs (anon visitors are valid callers).
+    const { data: existing, error: existingErr } = await admin
+      .from("visitor_events")
+      .select("session_id")
+      .eq("session_id", session_id)
+      .maybeSingle();
+    if (existingErr || !existing) {
+      return new Response(JSON.stringify({ ok: false, error: "unknown_session" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Read settings
     const { data: settings } = await admin
       .from("site_settings")

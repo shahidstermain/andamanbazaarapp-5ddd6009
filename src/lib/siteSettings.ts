@@ -27,6 +27,32 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
 
 export async function fetchSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await supabase
+    .from("public_site_settings" as never)
+    .select("*")
+    .eq("id", true)
+    .maybeSingle();
+  if (error || !data) return DEFAULT_SITE_SETTINGS;
+  const d = data as Record<string, unknown>;
+  return {
+    site_title: (d.site_title as string) ?? DEFAULT_SITE_SETTINGS.site_title,
+    site_description: (d.site_description as string) ?? DEFAULT_SITE_SETTINGS.site_description,
+    github_repo_url: (d.github_repo_url as string | null) ?? null,
+    // Alert-related fields are admin-only and not exposed via the public view.
+    visitor_alerts_enabled: DEFAULT_SITE_SETTINGS.visitor_alerts_enabled,
+    visitor_alerts_in_app: DEFAULT_SITE_SETTINGS.visitor_alerts_in_app,
+    visitor_alerts_email_enabled: DEFAULT_SITE_SETTINGS.visitor_alerts_email_enabled,
+    visitor_alert_email: DEFAULT_SITE_SETTINGS.visitor_alert_email,
+    visitor_alerts_webhook_enabled: DEFAULT_SITE_SETTINGS.visitor_alerts_webhook_enabled,
+    visitor_alert_webhook_url: DEFAULT_SITE_SETTINGS.visitor_alert_webhook_url,
+  };
+}
+
+/**
+ * Admin-only: fetch full site_settings row including alert configuration.
+ * Requires the caller to have the admin role; otherwise returns defaults.
+ */
+export async function fetchAdminSiteSettings(): Promise<SiteSettings> {
+  const { data, error } = await supabase
     .from("site_settings")
     .select("*")
     .eq("id", true)

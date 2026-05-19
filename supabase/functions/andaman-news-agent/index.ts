@@ -956,11 +956,10 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: require either x-cron-secret OR ?secret= matching NEWS_AGENT_SECRET
+  // Auth: require x-cron-secret header matching NEWS_AGENT_SECRET.
+  // Query-string secrets are not accepted — they leak into logs and Referer headers.
   const expected = Deno.env.get("NEWS_AGENT_SECRET");
-  const provided =
-    req.headers.get("x-cron-secret") ||
-    new URL(req.url).searchParams.get("secret");
+  const provided = req.headers.get("x-cron-secret");
   if (!expected || provided !== expected) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,

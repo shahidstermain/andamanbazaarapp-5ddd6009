@@ -37,19 +37,61 @@ Deno.serve(async (req) => {
 
     if (!clickId) return jsonResponse({ error: "Missing click_id" }, 400);
 
+    // Identify the caller (if any). The Supabase JS client always sends the user JWT in
+    // the Authorization header when logged in.
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authHeader = req.headers.get("Authorization") ?? "";
+    let callerUserId: string | null = null;
+    if (authHeader.startsWith("Bearer ")) {
+      try {
+        const userClient = createClient(SUPABASE_URL, ANON, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data } = await userClient.auth.getUser();
+        callerUserId = data?.user?.id ?? null;
+      } catch {
+        // ignore; treated as anonymous
+      }
+    }
+
     const admin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      SUPABASE_URL,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Look up click for vendor + recommendation context
+    // Look up click for vendor + recommendation context (and freshness check)
     const { data: click, error: cErr } = await admin
       .from("affiliate_clicks")
-      .select("id, vendor_id, recommendation_id, user_id")
+      .select("id, vendor_id, recommendation_id, user_id, created_at")
       .eq("id", clickId)
       .maybeSingle();
     if (cErr) throw cErr;
     if (!click) return jsonResponse({ error: "Unknown click" }, 404);
+
+    // Reject stale clicks (>30 days old). UTM returns should be near-immediate.
+    const ageMs = Date.now() - new Date(click.created_at as string).getTime();
+    if (ageMs > 30 * 24 * 60 * 60 * 1000) {
+      return jsonResponse({ error: "Click expired" }, 410);
+    }
+
+    // Authorization: if the click is attributed to a user, the caller must be that user.
+    // Anonymous clicks (click.user_id IS NULL) can be reported by anyone, but only once
+    // — the underlying record_affiliate_conversion call is idempotent on (click, external_order_id).
+    if (click.user_id && click.user_id !== callerUserId) {
+      return jsonResponse({ error: "Not authorized for this click" }, 403);
+    }
+
+    // Prevent re-injection of pending rows for the same click.
+    const { data: existingConv } = await admin
+      .from("affiliate_conversions")
+      .select("id")
+      .eq("click_id", click.id)
+      .limit(1)
+      .maybeSingle();
+    if (existingConv) {
+      return jsonResponse({ ok: true, conversion_id: existingConv.id, deduped: true });
+    }
 
     const { data: convId, error } = await admin.rpc("record_affiliate_conversion", {
       _recommendation_id: click.recommendation_id,

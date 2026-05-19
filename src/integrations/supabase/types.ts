@@ -80,6 +80,13 @@ export type Database = {
             referencedRelation: "affiliate_vendors"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "affiliate_clicks_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "public_affiliate_vendors"
+            referencedColumns: ["id"]
+          },
         ]
       }
       affiliate_conversions: {
@@ -158,6 +165,13 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "affiliate_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_conversions_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "public_affiliate_vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -1338,6 +1352,13 @@ export type Database = {
             referencedRelation: "affiliate_vendors"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "trip_recommendations_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "public_affiliate_vendors"
+            referencedColumns: ["id"]
+          },
         ]
       }
       trip_requests: {
@@ -1549,7 +1570,71 @@ export type Database = {
             referencedRelation: "affiliate_vendors"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "trip_recommendations_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "public_affiliate_vendors"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      public_affiliate_vendors: {
+        Row: {
+          active: boolean | null
+          affiliate_url_template: string | null
+          category: string | null
+          commission_type: string | null
+          commission_value: string | null
+          created_at: string | null
+          description: string | null
+          disclosure_text: string | null
+          homepage_url: string | null
+          id: string | null
+          logo_url: string | null
+          name: string | null
+          priority: number | null
+          slug: string | null
+          trusted: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          affiliate_url_template?: string | null
+          category?: string | null
+          commission_type?: string | null
+          commission_value?: string | null
+          created_at?: string | null
+          description?: string | null
+          disclosure_text?: string | null
+          homepage_url?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          priority?: number | null
+          slug?: string | null
+          trusted?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          affiliate_url_template?: string | null
+          category?: string | null
+          commission_type?: string | null
+          commission_value?: string | null
+          created_at?: string | null
+          description?: string | null
+          disclosure_text?: string | null
+          homepage_url?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          priority?: number | null
+          slug?: string | null
+          trusted?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       public_profiles: {
         Row: {
@@ -1584,6 +1669,30 @@ export type Database = {
           photo_url?: string | null
           successful_sales?: number | null
           total_listings?: number | null
+        }
+        Relationships: []
+      }
+      public_site_settings: {
+        Row: {
+          github_repo_url: string | null
+          id: boolean | null
+          site_description: string | null
+          site_title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          github_repo_url?: string | null
+          id?: boolean | null
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          github_repo_url?: string | null
+          id?: boolean | null
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
