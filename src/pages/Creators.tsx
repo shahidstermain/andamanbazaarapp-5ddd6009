@@ -50,12 +50,41 @@ export default function Creators() {
     return m;
   }, []);
 
+  const itemListJsonLd = useMemo(
+    () => ({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Andaman Island Creators Directory",
+      description:
+        "Andaman & Nicobar–based photographers, drone pilots, dive teams and local media.",
+      numberOfItems: islandCreators.length,
+      itemListElement: islandCreators.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Person",
+          name: c.name,
+          description: c.blurb,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: c.base,
+            addressRegion: "Andaman and Nicobar Islands",
+            addressCountry: "IN",
+          },
+          url: c.profileUrl,
+        },
+      })),
+    }),
+    [],
+  );
+
   return (
     <div className="space-y-6 pb-10">
       <SeoHead
         title="Andaman Island Creators Directory — photographers, drone pilots, dive teams & local media"
         description="A searchable directory of Andaman & Nicobar–based content creators, photographers, drone pilots, dive operators and local media platforms. Curated by AndamanBazaar."
         type="website"
+        jsonLd={itemListJsonLd}
       />
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
