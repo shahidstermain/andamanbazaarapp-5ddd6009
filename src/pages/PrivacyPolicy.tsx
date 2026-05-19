@@ -12,7 +12,7 @@ const PrivacyPolicy = () => {
       Object.assign(document.createElement("meta"), { name: "description" });
     meta.setAttribute(
       "content",
-      "How AndamanBazaar collects, uses, and protects your personal data — DPDP Act 2023 compliant privacy policy for buyers, sellers, and trip planners across the Andaman Islands.",
+      "How AndamanBazaar collects, uses and protects your data — DPDP Act 2023 compliant privacy policy for the Andaman Islands marketplace.",
     );
     if (!meta.parentNode) document.head.appendChild(meta);
   }, []);
