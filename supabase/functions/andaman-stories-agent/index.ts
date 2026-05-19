@@ -351,7 +351,23 @@ function smartTruncate(text: string, max: number): string {
   return base.replace(/[\s,;:.!?\-]+$/, "") + "…";
 }
 
+function sanitizeBody(md: string): string {
+  let s = (md ?? "").trim();
+  const fenceMatch = s.match(/^```(?:[a-zA-Z]+)?\s*\n([\s\S]*?)\n?```\s*$/);
+  if (fenceMatch) s = fenceMatch[1].trim();
+  s = s.replace(/^!\[[^\]]*\]\([^)]+\)\s*\n+/, "");
+  s = s
+    .split(/\n{2,}/)
+    .filter((para) => {
+      const nonLatin = (para.match(/[\u0400-\u04FF\u0500-\u052F\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/g) ?? []).length;
+      return nonLatin < 8;
+    })
+    .join("\n\n");
+  return s.trim();
+}
+
 function normalizePost(post: GeneratedPost): GeneratedPost {
+  const bodyMarkdown = sanitizeBody(post.bodyMarkdown);
   let metaDescription = (post.metaDescription ?? "").trim().replace(/\s+/g, " ");
   if (metaDescription.length > META_DESC_MAX) {
     metaDescription = smartTruncate(metaDescription, META_DESC_MAX);
@@ -388,7 +404,7 @@ function normalizePost(post: GeneratedPost): GeneratedPost {
     ]);
   }
 
-  return { ...post, metaDescription, coverAlt };
+  return { ...post, bodyMarkdown, metaDescription, coverAlt };
 }
 
 function padToMin(text: string, min: number, max: number, fillers: string[]): string {
