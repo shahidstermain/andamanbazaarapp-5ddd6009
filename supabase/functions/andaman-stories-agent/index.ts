@@ -237,12 +237,21 @@ async function generateStory(
 ): Promise<GeneratedPost> {
   const system = `You are a local Andaman travel writer for AndamanBazaar.in.
 Write SEO-optimised, helpful, evergreen blog posts that bring organic traffic.
-Style:
-- Friendly, factual, first-person-plural ("we", "us"), local-expert tone.
-- ${MIN_WORDS}–${MAX_WORDS} words in clean Markdown.
+
+Voice — sound like a real local, not a brochure:
+- Friendly, first-person-plural ("we", "us"), conversational. Vary sentence length.
+- Use everyday words and contractions. Drop a small personal aside where it fits.
+- Avoid AI clichés ("comprehensive", "delve into", "in conclusion", "stands as a testament", "nestled", "myriad", "embark on a journey").
+- Don't write a generic intro. Open with something a friend would actually say.
+
+Hard rules:
+- Output ONLY clean GitHub-Flavored Markdown for bodyMarkdown. No \`\`\` code fences wrapping the whole article. No HTML.
+- English only. No Russian, Hindi script, Chinese or other languages anywhere in the output.
+- No meta talk: never say "as an AI", "here is the article", "I will now write", or narrate what you're doing.
+- ${MIN_WORDS}–${MAX_WORDS} words.
 - At least ${MIN_H2} \`## H2\` subheadings, including one "## FAQs" section with 3–5 Q&A pairs (use **Q:** / **A:** prefixes).
 - Mention specific Andaman places (Port Blair, Havelock/Swaraj Dweep, Neil/Shaheed Dweep, Radhanagar, etc.) where natural.
-- No fabricated numbers, no fake quotes, no clickbait, no "as an AI".
+- No fabricated numbers, no fake quotes, no clickbait.
 - Tags: 3–6 short lowercase keywords (e.g. "havelock", "diving", "andaman", "2026").
 - coverAlt: ${ALT_MIN}–${ALT_MAX} chars, describes the visual scene AND the topic, mentions an Andaman place. Don't start with "image of" / "photo of".
 - seoTitle ≤ ${SEO_TITLE_MAX} chars; metaDescription ${META_DESC_MIN}–${META_DESC_MAX} chars.`;
@@ -342,7 +351,23 @@ function smartTruncate(text: string, max: number): string {
   return base.replace(/[\s,;:.!?\-]+$/, "") + "…";
 }
 
+function sanitizeBody(md: string): string {
+  let s = (md ?? "").trim();
+  const fenceMatch = s.match(/^```(?:[a-zA-Z]+)?\s*\n([\s\S]*?)\n?```\s*$/);
+  if (fenceMatch) s = fenceMatch[1].trim();
+  s = s.replace(/^!\[[^\]]*\]\([^)]+\)\s*\n+/, "");
+  s = s
+    .split(/\n{2,}/)
+    .filter((para) => {
+      const nonLatin = (para.match(/[\u0400-\u04FF\u0500-\u052F\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/g) ?? []).length;
+      return nonLatin < 8;
+    })
+    .join("\n\n");
+  return s.trim();
+}
+
 function normalizePost(post: GeneratedPost): GeneratedPost {
+  const bodyMarkdown = sanitizeBody(post.bodyMarkdown);
   let metaDescription = (post.metaDescription ?? "").trim().replace(/\s+/g, " ");
   if (metaDescription.length > META_DESC_MAX) {
     metaDescription = smartTruncate(metaDescription, META_DESC_MAX);
@@ -379,7 +404,7 @@ function normalizePost(post: GeneratedPost): GeneratedPost {
     ]);
   }
 
-  return { ...post, metaDescription, coverAlt };
+  return { ...post, bodyMarkdown, metaDescription, coverAlt };
 }
 
 function padToMin(text: string, min: number, max: number, fillers: string[]): string {
@@ -607,9 +632,9 @@ Deno.serve(async (req) => {
     const slug = await ensureUniqueSlug(supabase, slugify(post.headline));
     const coverUrl = await generateCover(post.headline, post.coverAlt);
 
-    const contentWithCover = coverUrl
-      ? `![${post.coverAlt.replace(/[\[\]]/g, "")}](${coverUrl})\n\n${post.bodyMarkdown}`
-      : post.bodyMarkdown;
+    // The post page renders cover_image_url above the body, so do not
+    // duplicate it inside the markdown.
+    const contentWithCover = post.bodyMarkdown;
 
     const { error: insertErr } = await supabase.from("posts").insert({
       title: post.headline,

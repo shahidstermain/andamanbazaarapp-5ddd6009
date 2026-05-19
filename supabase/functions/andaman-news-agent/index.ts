@@ -297,12 +297,21 @@ async function generateArticle(story: RawStory): Promise<GeneratedPost> {
   }
 
   const system = `You are a local Andaman journalist writing for AndamanBazaar.in (a travel + local news platform).
-- Write factual, neutral, helpful articles in clean Markdown.
-- 450–700 words. Use 2–4 H2 subheadings (## ...).
-- Include a final "## Source" section linking to the original URL.
-- No clickbait. No fabricated quotes or numbers. If unsure, omit.
+
+Voice & style — write like a real human, not a press release:
+- Plain conversational English. Short sentences mixed with longer ones. Vary rhythm.
+- Use everyday words. Avoid corporate filler ("comprehensive", "paramount", "meticulous", "stakeholders", "in conclusion", "it is worth noting").
+- No throat-clearing intros, no "In a significant development". Start with the actual fact.
+- It is fine to use a contraction ("isn't", "won't"). It is fine to be slightly opinionated when a local would naturally be.
+
+Hard rules:
+- Output ONLY clean GitHub-Flavored Markdown for bodyMarkdown. No \`\`\` code fences wrapping the whole article. No HTML.
+- English only. Do not include any text in Russian, Hindi script, Chinese, or any other language.
+- No meta talk: never say "as an AI", "here is the article", "I will now", or describe what you're about to do.
+- 450–700 words. 2–4 H2 subheadings (## ...). End with a "## Source" section linking the original URL.
+- No clickbait, no fabricated quotes, no invented numbers. If a fact isn't in the source, omit it.
 - Tags: 3–6 short lowercase keywords.
-- coverAlt: 50–125 chars, describes the cover image's scene AND the article subject (location, activity, or event). No "image of" / "photo of" prefix.`;
+- coverAlt: 50–125 chars, describes the cover image scene AND the subject (location/activity/event). No "image of" / "photo of" prefix.`;
 
   const user = `Original headline: ${story.title}
 Source URL: ${story.url}
@@ -669,7 +678,30 @@ function clampHeadlineForSlug(headline: string, maxSlug: number): string {
   return h.slice(0, Math.max(10, maxSlug));
 }
 
+// Strips LLM artefacts that occasionally bleed into bodyMarkdown:
+// surrounding ``` code fences, non-Latin/non-Devanagari scripts (Cyrillic,
+// CJK, etc.), and any leading hero `![..](..)` image (the post page already
+// renders cover_image_url above the body).
+function sanitizeBody(md: string): string {
+  let s = (md ?? "").trim();
+  // Unwrap if the model wrapped the whole article in a ``` ... ``` fence.
+  const fenceMatch = s.match(/^```(?:[a-zA-Z]+)?\s*\n([\s\S]*?)\n?```\s*$/);
+  if (fenceMatch) s = fenceMatch[1].trim();
+  // Drop opening cover image line so we never duplicate the page hero.
+  s = s.replace(/^!\[[^\]]*\]\([^)]+\)\s*\n+/, "");
+  // Remove paragraphs that are mostly Cyrillic / CJK / other non-English bleed.
+  s = s
+    .split(/\n{2,}/)
+    .filter((para) => {
+      const nonLatin = (para.match(/[\u0400-\u04FF\u0500-\u052F\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/g) ?? []).length;
+      return nonLatin < 8; // tolerate a stray glyph, drop full sentences
+    })
+    .join("\n\n");
+  return s.trim();
+}
+
 function normalizePost(post: GeneratedPost): GeneratedPost {
+  const bodyMarkdown = sanitizeBody(post.bodyMarkdown);
   let metaDescription =
     post.metaDescription && post.metaDescription.length > META_DESC_MAX
       ? smartTruncate(post.metaDescription, META_DESC_MAX)
@@ -717,7 +749,7 @@ function normalizePost(post: GeneratedPost): GeneratedPost {
     ]);
   }
 
-  return { ...post, metaDescription, seoTitle, headline, coverAlt };
+  return { ...post, bodyMarkdown, metaDescription, seoTitle, headline, coverAlt };
 }
 
 function padToMin(text: string, min: number, max: number, fillers: string[]): string {
@@ -943,11 +975,10 @@ Deno.serve(async (req) => {
     const slug = await ensureUniqueSlug(supabase, slugify(post.headline));
     const coverUrl = await generateCoverImage(post.headline, post.coverAlt);
 
-    // Embed the cover image with proper alt text at the top of the markdown
-    // so it renders in the post body with SEO-friendly alt attribute.
-    const contentWithCover = coverUrl
-      ? `![${post.coverAlt.replace(/[\[\]]/g, "")}](${coverUrl})\n\n${post.bodyMarkdown}`
-      : post.bodyMarkdown;
+    // NOTE: do NOT embed the cover image at the top of the markdown — the
+    // post page already renders cover_image_url above the body. Embedding it
+    // here produced duplicate hero images.
+    const contentWithCover = post.bodyMarkdown;
 
     const { error: insertErr } = await supabase.from("posts").insert({
       title: post.headline,
