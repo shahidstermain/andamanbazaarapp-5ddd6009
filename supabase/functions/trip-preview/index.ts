@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
+import { callLovableGateway } from "./_shared/ai-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -90,9 +91,6 @@ function seasonWarning(startDate: string): string | null {
 }
 
 async function generateTeaser(inputs: Inputs): Promise<any> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
-
   const sys = `You are an Andaman Islands local insider who has lived there for years. Produce a SHORT teaser (no more than 140 words).
 Output structured JSON via the provided tool only. Be specific to Andaman geography (Port Blair, Havelock/Swaraj Dweep, Neil/Shaheed Dweep, Baratang, Diglipur). No tourist fluff.
 
@@ -107,58 +105,49 @@ The summary line should feel hand-crafted — mention 2–3 real spots that fit 
 
   const user = `Trip inputs: ${JSON.stringify(inputs)}.`;
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: sys },
-        { role: "user", content: user },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "trip_teaser",
-            description: "Return short teaser for the trip.",
-            parameters: {
-              type: "object",
-              properties: {
-                trip_title: { type: "string" },
-                summary: { type: "string", description: "1–2 sentence pitch" },
-                day1_morning: { type: "string" },
-                highlights: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "3 short bullet highlights",
-                },
-                estimated_total_inr: { type: "number" },
+  const res = await callLovableGateway({
+    model: "google/gemini-2.5-flash",
+    messages: [
+      { role: "system", content: sys },
+      { role: "user", content: user },
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "trip_teaser",
+          description: "Return short teaser for the trip.",
+          parameters: {
+            type: "object",
+            properties: {
+              trip_title: { type: "string" },
+              summary: { type: "string", description: "1–2 sentence pitch" },
+              day1_morning: { type: "string" },
+              highlights: {
+                type: "array",
+                items: { type: "string" },
+                description: "3 short bullet highlights",
               },
-              required: [
-                "trip_title",
-                "summary",
-                "day1_morning",
-                "highlights",
-                "estimated_total_inr",
-              ],
-              additionalProperties: false,
+              estimated_total_inr: { type: "number" },
             },
+            required: [
+              "trip_title",
+              "summary",
+              "day1_morning",
+              "highlights",
+              "estimated_total_inr",
+            ],
+            additionalProperties: false,
           },
         },
-      ],
-      tool_choice: { type: "function", function: { name: "trip_teaser" } },
-    }),
+      },
+    ],
+    tool_choice: { type: "function", function: { name: "trip_teaser" } },
   });
 
   if (!res.ok) {
     const text = await res.text();
-    if (res.status === 429) throw new Error("AI rate limit. Try again in a minute.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace settings.");
-    console.error("AI gateway error", res.status, text);
+    console.error("AI gateway error", text);
     throw new Error("AI gateway error");
   }
   const data = await res.json();

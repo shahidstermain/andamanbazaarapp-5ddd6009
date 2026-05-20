@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
+import { callLovableGateway } from "../_shared/ai-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -92,9 +93,6 @@ async function generateRecs(
   itinerary: any,
   vendors: Vendor[],
 ): Promise<any[]> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
-
   const summary = itinerary
     ? {
         days: itinerary.cover?.days,
@@ -105,30 +103,26 @@ async function generateRecs(
       }
     : null;
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: buildSystemPrompt(vendors) },
-        {
-          role: "user",
-          content: `Trip inputs:\n${JSON.stringify(inputs)}\n\nItinerary summary:\n${JSON.stringify(summary)}`,
+  const res = await callLovableGateway({
+    model: "google/gemini-2.5-flash",
+    messages: [
+      { role: "system", content: buildSystemPrompt(vendors) },
+      {
+        role: "user",
+        content: `Trip inputs:\n${JSON.stringify(inputs)}\n\nItinerary summary:\n${JSON.stringify(summary)}`,
+      },
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "emit_recommendations",
+          description: "Emit ranked affiliate recommendations.",
+          parameters: REC_SCHEMA,
         },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "emit_recommendations",
-            description: "Emit ranked affiliate recommendations.",
-            parameters: REC_SCHEMA,
-          },
-        },
-      ],
+      },
       tool_choice: { type: "function", function: { name: "emit_recommendations" } },
-    }),
+    ],
   });
 
   if (!res.ok) {

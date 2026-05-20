@@ -1,7 +1,30 @@
-# AI Integration Guide - Lovable AI Gateway
+# AI Integration Guide - Hybrid AI Gateway (MiniMax + Lovable)
 
 ## Overview
-AndamanBazaar uses **Lovable AI Gateway** for all AI/LLM processing. This ensures consistent billing, rate limiting, and model access through Lovable's managed service.
+AndamanBazaar uses a **hybrid AI gateway** that tries MiniMax first, then falls back to Lovable's AI Gateway. This removes Lovable's AI request capping while maintaining reliability through fallback.
+
+## Architecture
+```
+Edge Functions → callLovableGateway() → MiniMax API (primary)
+                                      ↓ (fallback)
+                                   Lovable AI Gateway
+```
+
+## Environment Variables Required
+```bash
+# MiniMax API (primary) - get from https://platform.minimax.chat/
+MINIMAX_API_KEY=your_minimax_key
+
+# Lovable API (fallback) - keep for reliability
+LOVABLE_API_KEY=your_lovable_key
+```
+
+## Setup in Supabase
+```bash
+# Set both secrets
+supabase secrets set MINIMAX_API_KEY=your_minimax_key
+# LOVABLE_API_KEY should already be set
+```
 
 ## Current AI Features
 

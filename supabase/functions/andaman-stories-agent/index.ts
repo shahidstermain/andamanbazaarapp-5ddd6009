@@ -3,6 +3,7 @@
 // Triggered by pg_cron daily OR by admin-trigger-stories-agent (with x-cron-secret).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { callLovableGateway } from "../_shared/ai-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -100,8 +101,6 @@ type GeneratedPost = {
 
 type ValidationResult = { ok: true } | { ok: false; reasons: string[] };
 
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
 // ---------- utils ----------
 
 function includesAndamanKeyword(text: string): boolean {
@@ -148,26 +147,21 @@ function jaccard(a: Set<string>, b: Set<string>) {
 
 // ---------- LLM ----------
 
+// Wrapper for backward compatibility - uses callLovableGateway internally
 async function callLovableJSON(
   messages: Array<{ role: string; content: string }>,
   model: string = "google/gemini-2.5-pro",
 ) {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "publish_story",
-            description: "Return the structured evergreen Andaman blog post.",
-            parameters: {
+  const res = await callLovableGateway({
+    model,
+    messages: messages as any,
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "publish_story",
+          description: "Return the structured evergreen Andaman blog post.",
+          parameters: {
               type: "object",
               properties: {
                 topic: { type: "string", description: "The chosen topic from the pool." },
@@ -296,45 +290,38 @@ Now write the full blog post via the \`publish_story\` tool.${
 
 async function moderate(post: GeneratedPost): Promise<{ ok: true } | { ok: false; reason: string }> {
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a content moderator for a family-friendly travel site. Reject only if the text contains hate, sexual content, violence, illegal activity, or unsafe travel advice. Otherwise approve.",
-          },
-          {
-            role: "user",
-            content: `Title: ${post.headline}\n\n${post.bodyMarkdown.slice(0, 4000)}`,
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "moderate",
-              description: "Approve or reject the article.",
-              parameters: {
-                type: "object",
-                properties: {
-                  approved: { type: "boolean" },
-                  reason: { type: "string" },
-                },
-                required: ["approved", "reason"],
-                additionalProperties: false,
+    const res = await callLovableGateway({
+      model: "google/gemini-2.5-flash-lite",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a content moderator for a family-friendly travel site. Reject only if the text contains hate, sexual content, violence, illegal activity, or unsafe travel advice. Otherwise approve.",
+        },
+        {
+          role: "user",
+          content: `Title: ${post.headline}\n\n${post.bodyMarkdown.slice(0, 4000)}`,
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "moderate",
+            description: "Approve or reject the article.",
+            parameters: {
+              type: "object",
+              properties: {
+                approved: { type: "boolean" },
+                reason: { type: "string" },
               },
+              required: ["approved", "reason"],
+              additionalProperties: false,
             },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "moderate" } },
-      }),
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "moderate" } },
     });
     if (!res.ok) return { ok: true }; // fail-open on moderation outage
     const json = await res.json();

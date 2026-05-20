@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { callLovableGateway } from "./_shared/ai-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -227,44 +228,40 @@ CONFLICT CHECKER (run before emitting):
 Output ONLY via the tool. No prose outside the tool call.`;
 }
 
-async function callGateway(model: string, sys: string, userMsg: string): Promise<{ raw: any; parsed: Itinerary }> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
-
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: sys },
-        { role: "user", content: userMsg },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "emit_itinerary",
-            description: "Emit the full Andaman trip itinerary.",
-            parameters: ITINERARY_SCHEMA,
-          },
+async function callGateway(model: string, sys: string, userMsg: string): Promise<{ raw: any; parsed: Itinerary; source: "minimax" | "lovable" }> {
+  const res = await callLovableGateway({
+    model,
+    messages: [
+      { role: "system", content: sys },
+      { role: "user", content: userMsg },
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "emit_itinerary",
+          description: "Emit the full Andaman trip itinerary.",
+          parameters: ITINERARY_SCHEMA,
         },
-      ],
-      tool_choice: { type: "function", function: { name: "emit_itinerary" } },
-    }),
+      },
+    ],
+    tool_choice: { type: "function", function: { name: "emit_itinerary" } },
   });
 
   if (!res.ok) {
     const text = await res.text();
-    if (res.status === 429) throw new Error("AI rate limit. Try again in a minute.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace settings.");
-    console.error("AI gateway error", res.status, text);
-    throw new Error("AI gateway error");
+    if (text.includes("429")) throw new Error("AI rate limit. Try again in a minute.");
+    if (text.includes("402")) throw new Error("AI credits exhausted.");
+    throw new Error(`AI gateway error: ${text}`);
   }
+
   const data = await res.json();
   const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
   if (!args) throw new Error("AI returned no itinerary");
-  return { raw: data, parsed: JSON.parse(args) as Itinerary };
+  
+  const source = data?.id?.startsWith("minimax") ? "minimax" : "lovable";
+  console.log(`[trip-generate] AI response from ${source}`);
+  return { raw: data, parsed: JSON.parse(args) as Itinerary, source };
 }
 
 // ---------- Server-side conflict checker (defensive) ----------

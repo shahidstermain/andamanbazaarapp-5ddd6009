@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
+import { callLovableGateway } from "../_shared/ai-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,13 +41,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // AI gateway handles API key check internally
 
     const body = await req.json().catch(() => ({}));
     const title = String(body?.title ?? "").trim().slice(0, 200);
@@ -70,46 +65,29 @@ Price: ${price || "n/a"}
 
 Write the description.`;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userPrompt },
-        ],
-      }),
+    const res = await callLovableGateway({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt },
+      ],
     });
 
-    if (resp.status === 429) {
-      return new Response(
-        JSON.stringify({ error: "Too many requests, try again in a minute." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-    if (resp.status === 402) {
-      return new Response(
-        JSON.stringify({ error: "AI credits exhausted. Add credits in Lovable workspace." }),
-        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-    if (!resp.ok) {
-      const t = await resp.text();
-      console.error("AI gateway error", resp.status, t);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("AI gateway error", text);
       return new Response(JSON.stringify({ error: "AI helper unavailable" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await resp.json();
+    const data = await res.json();
     const text = String(data?.choices?.[0]?.message?.content ?? "")
       .replace(/^["']+|["']+$/g, "")
       .trim();
+
+    console.log(`[generate-listing-description] AI response`);
 
     return new Response(JSON.stringify({ description: text }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

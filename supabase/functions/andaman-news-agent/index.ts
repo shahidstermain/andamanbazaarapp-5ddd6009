@@ -6,6 +6,7 @@
 // Triggered by: pg_cron (daily) OR manual curl with x-cron-secret header.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { callLovableGateway } from "../_shared/ai-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -293,55 +294,46 @@ function pickTopStory(stories: RawStory[]): RawStory | null {
 
 // ---------- LLM (Lovable AI) ----------
 
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
 async function callLovableJSON(messages: Array<{ role: string; content: string }>) {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages,
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "publish_article",
-            description: "Return the structured news article",
-            parameters: {
-              type: "object",
-              properties: {
-                seoTitle: { type: "string" },
-                metaDescription: { type: "string" },
-                headline: { type: "string" },
-                excerpt: { type: "string" },
-                bodyMarkdown: { type: "string" },
-                tags: { type: "array", items: { type: "string" } },
-                coverAlt: {
-                  type: "string",
-                  description:
-                    "Descriptive alt text for the cover image (50-125 chars). Must describe the visual scene AND mention the article topic. No 'image of' / 'photo of' prefix.",
-                },
+  const res = await callLovableGateway({
+    model: "google/gemini-2.5-flash",
+    messages,
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "publish_article",
+          description: "Return the structured news article",
+          parameters: {
+            type: "object",
+            properties: {
+              seoTitle: { type: "string" },
+              metaDescription: { type: "string" },
+              headline: { type: "string" },
+              excerpt: { type: "string" },
+              bodyMarkdown: { type: "string" },
+              tags: { type: "array", items: { type: "string" } },
+              coverAlt: {
+                type: "string",
+                description:
+                  "Descriptive alt text for the cover image (50-125 chars). Must describe the visual scene AND mention the article topic. No 'image of' / 'photo of' prefix.",
               },
-              required: [
-                "seoTitle",
-                "metaDescription",
-                "headline",
-                "excerpt",
-                "bodyMarkdown",
-                "tags",
-                "coverAlt",
-              ],
-              additionalProperties: false,
             },
+            required: [
+              "seoTitle",
+              "metaDescription",
+              "headline",
+              "excerpt",
+              "bodyMarkdown",
+              "tags",
+              "coverAlt",
+            ],
+            additionalProperties: false,
           },
         },
-      ],
-      tool_choice: { type: "function", function: { name: "publish_article" } },
-    }),
+      },
+    ],
+    tool_choice: { type: "function", function: { name: "publish_article" } },
   });
   if (res.status === 429) throw new Error("ai_rate_limited");
   if (res.status === 402) throw new Error("ai_credits_exhausted");
@@ -463,32 +455,25 @@ async function callLovablePatch(
   const filtered: Record<string, unknown> = {};
   for (const f of fields) if (properties[f]) filtered[f] = properties[f];
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages,
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "patch_article",
-            description: "Return ONLY the corrected fields for the article",
-            parameters: {
-              type: "object",
-              properties: filtered,
-              required: fields,
-              additionalProperties: false,
-            },
+  const res = await callLovableGateway({
+    model: "google/gemini-2.5-flash",
+    messages,
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "patch_article",
+          description: "Return ONLY the corrected fields for the article",
+          parameters: {
+            type: "object",
+            properties: filtered,
+            required: fields,
+            additionalProperties: false,
           },
         },
-      ],
-      tool_choice: { type: "function", function: { name: "patch_article" } },
-    }),
+      },
+    ],
+    tool_choice: { type: "function", function: { name: "patch_article" } },
   });
   if (res.status === 429) throw new Error("ai_rate_limited");
   if (res.status === 402) throw new Error("ai_credits_exhausted");
@@ -579,11 +564,16 @@ async function generateCoverImage(
   headline: string,
   altText: string,
 ): Promise<string | null> {
+  // Note: Image generation still uses direct Lovable API since the gateway
+  // doesn't support multimodal image generation (modalities: ["image", "text"])
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) return null;
+  
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -971,7 +961,7 @@ Deno.serve(async (req) => {
   // time out waiting on AI generation + scraping. Respond in <100ms.
   const work = (async () => {
     try {
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    // API key check now handled by callLovableGateway internally
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
