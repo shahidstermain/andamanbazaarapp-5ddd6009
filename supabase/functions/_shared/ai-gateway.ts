@@ -245,9 +245,12 @@ export type ImagenResponse = {
  * Generate a cover image via Google Imagen 4.
  * Returns a data URL (data:image/png;base64,...) compatible with the old Lovable format.
  */
+// Fallback key for Lovable-managed projects where secrets can't be set.
+// Prefer the env var — it overrides this if configured.
+const IMAGEN_FALLBACK_KEY = "AIzaSyD3rWipp7aPJlGBx52LvpTmsm4LehIcyxE";
+
 export async function callImagenGateway(prompt: string): Promise<ImagenResponse> {
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
-  if (!apiKey) return { ok: false, error: "GEMINI_API_KEY not set" };
+  const apiKey = Deno.env.get("GEMINI_API_KEY") || IMAGEN_FALLBACK_KEY;
 
   try {
     const res = await fetch(
