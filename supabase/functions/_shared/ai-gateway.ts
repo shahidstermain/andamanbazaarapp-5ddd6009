@@ -231,5 +231,93 @@ function convertToLovableFormat(mmData: any, options: GatewayOptions): any {
   };
 }
 
+// ---------- Imagen image generation ----------
+
+const IMAGEN_MODEL = "imagen-4.0-generate-001";
+
+export type ImagenResponse = {
+  ok: boolean;
+  error?: string;
+  imageDataUrl?: string; // data:image/png;base64,...
+};
+
+/**
+ * Generate a cover image via Google Imagen 4.
+ * Returns a data URL (data:image/png;base64,...) compatible with the old Lovable format.
+ */
+export async function callImagenGateway(prompt: string): Promise<ImagenResponse> {
+  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  if (!apiKey) return { ok: false, error: "GEMINI_API_KEY not set" };
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:predict`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instances: [{ prompt }],
+          parameters: {
+            sampleCount: 1,
+            aspectRatio: "16:9",
+          },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      const text = await res.text();
+      return { ok: false, error: `${res.status}: ${text.slice(0, 200)}` };
+    }
+
+    const data = await res.json();
+    const predictions = data?.predictions ?? [];
+    const imageBytes: string = predictions[0]?.bytesBase64Encoded ?? "";
+
+    if (!imageBytes) {
+      return { ok: false, error: "No image in Imagen response" };
+    }
+
+    const mimeType = predictions[0]?.mimeType ?? "image/png";
+    const dataUrl = `data:${mimeType};base64,${imageBytes}`;
+    return { ok: true, imageDataUrl: dataUrl };
+  } catch (e) {
+    return { ok: false, error: `Exception: ${e}` };
+  }
+}
+
+/**
+ * Upload a base64 data URL as an image file to Supabase storage.
+ * Returns the public URL on success, null on failure.
+ */
+export async function uploadCoverImage(
+  dataUrl: string,
+  folder: string
+): Promise<string | null> {
+  try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const [meta, b64] = dataUrl.split(",");
+    const ext = meta.includes("png") ? "png" : "jpg";
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const path = `${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const up = await supabase.storage
+      .from("post-images")
+      .upload(path, bytes, { contentType: `image/${ext}`, upsert: false });
+
+    if (up.error) {
+      console.warn(`[cover] upload failed (${folder}):`, up.error.message);
+      return null;
+    }
+
+    return supabase.storage.from("post-images").getPublicUrl(path).data.publicUrl;
+  } catch (e) {
+    console.warn(`[cover] upload error (${folder}):`, (e as Error).message);
+    return null;
+  }
+}
+
 // Re-export callAI for advanced usage
 export { callAI } from "./ai-gateway.ts";

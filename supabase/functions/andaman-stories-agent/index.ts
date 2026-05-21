@@ -3,7 +3,7 @@
 // Triggered by pg_cron daily OR by admin-trigger-stories-agent (with x-cron-secret).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { callLovableGateway } from "../_shared/ai-gateway.ts";
+import { callLovableGateway, callImagenGateway, uploadCoverImage } from "../_shared/ai-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -470,51 +470,17 @@ async function checkDuplicate(supabase: any, post: GeneratedPost) {
 // ---------- cover image ----------
 
 async function generateCover(headline: string, alt: string): Promise<string | null> {
-  try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [
-          {
-            role: "user",
-            content: `Cinematic, photo-realistic editorial cover image for an Andaman Islands travel blog post titled: "${headline}".
+  const prompt = `Cinematic, photo-realistic editorial cover image for an Andaman Islands travel blog post titled: "${headline}".
 Visual brief: ${alt}.
-Tropical, scenic, true-to-place, no text overlays, no watermarks.`,
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    const dataUrl: string | undefined =
-      json?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!dataUrl?.startsWith("data:image/")) return null;
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
-    const [meta, b64] = dataUrl.split(",");
-    const ext = meta.includes("png") ? "png" : "jpg";
-    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-    const path = `stories-agent/${Date.now()}-${crypto.randomUUID()}.${ext}`;
-    const up = await supabase.storage
-      .from("post-images")
-      .upload(path, bytes, { contentType: `image/${ext}`, upsert: false });
-    if (up.error) {
-      console.warn("[cover] upload failed:", up.error.message);
-      return null;
-    }
-    return supabase.storage.from("post-images").getPublicUrl(path).data.publicUrl;
-  } catch (e) {
-    console.warn("[cover] failed:", (e as Error).message);
+Tropical, scenic, true-to-place, no text overlays, no watermarks.`;
+
+  const result = await callImagenGateway(prompt);
+  if (!result.ok || !result.imageDataUrl) {
+    console.warn("[cover] Imagen failed:", result.error);
     return null;
   }
+
+  return uploadCoverImage(result.imageDataUrl, "stories-agent");
 }
 
 // ---------- save helpers ----------
