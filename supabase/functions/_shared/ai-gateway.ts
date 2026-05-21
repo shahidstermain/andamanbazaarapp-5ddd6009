@@ -85,12 +85,15 @@ async function tryMiniMax(options: GatewayOptions): Promise<{
   }
 
   // Map model names - MiniMax uses different model identifiers
-  let mmModel = "MiniMax-Text-01";
-  if (options.model.includes("gemini-2.5-pro")) {
-    mmModel = "abab6.5s-chat";
-  } else if (options.model.includes("gemini-3-flash")) {
-    mmModel = "abab6.5s-chat";
+  // abab6.5s-chat supports text+function calling (good for trip/recommendations)
+  let mmModel = "abab6.5s-chat";
+  if (options.model.includes("gemini-2.5-flash-image")) {
+    // Image gen — MiniMax doesn't expose a comparable OpenAI-compatible image endpoint
+    // Keep this as Lovable-only (handled in tryLovable fallback)
+    return { ok: false, error: "image-model-kept-lovable" };
   }
+  // All gemini-2.5/3 text models route to abab6.5s-chat
+  // (abab6.5s-chat is the workhorse for text/chat, supports function calling)
 
   try {
     const res = await fetch("https://api.minimax.chat/v1/text/chatcompletion_v2", {
