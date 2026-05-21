@@ -139,6 +139,21 @@ const ListingDetail = () => {
     }
   };
 
+  // usePageSeo MUST be called before early returns (React rule of hooks)
+  usePageSeo(
+    listing
+      ? {
+          title: `${listing.title} — ₹${listing.price.toLocaleString("en-IN")} in ${listing.area || listing.city}`,
+          description: `${listing.description?.slice(0, 150) || listing.title} — Listed on AndamanBazaar`,
+          path: `/listings/${listing.id}`,
+        }
+      : {
+          title: loading ? "Loading... — AndamanBazaar" : "Listing not found — AndamanBazaar",
+          description: "Browse listings on AndamanBazaar in the Andaman Islands",
+          path: "/listings",
+        }
+  );
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -164,41 +179,6 @@ const ListingDetail = () => {
   const isSold = listing.status === "sold";
   const coverImage = photos[0]?.image_url;
 
-  // Per-listing SEO
-  usePageSeo({
-    title: `${listing.title} — ₹${listing.price.toLocaleString("en-IN")} in ${listing.area || listing.city}`,
-    description: `${listing.description?.slice(0, 150) || listing.title} — Listed on AndamanBazaar in ${listing.area || listing.city}. ${conditionLabel} condition.`,
-    path: `/listings/${listing.id}`,
-    ogImage: coverImage,
-    ogType: "product",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "name": listing.title,
-      "description": listing.description || listing.title,
-      "image": coverImage ? [coverImage] : [],
-      "offers": {
-        "@type": "Offer",
-        "price": listing.price,
-        "priceCurrency": "INR",
-        "availability": isSold
-          ? "https://schema.org/SoldOut"
-          : "https://schema.org/InStock",
-        "seller": {
-          "@type": "Person",
-          "name": listing.profiles?.name ?? "Local seller"
-        }
-      },
-      "breadcrumb": {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://andamanbazaar.in/" },
-          { "@type": "ListItem", "position": 2, "name": "Listings", "item": "https://andamanbazaar.in/listings" },
-          { "@type": "ListItem", "position": 3, "name": listing.title, "item": `https://andamanbazaar.in/listings/${listing.id}` },
-        ]
-      }
-    },
-  });
 
   const onMarkSold = async () => {
     if (!listing) return;
