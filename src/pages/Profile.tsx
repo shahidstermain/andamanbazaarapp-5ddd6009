@@ -137,15 +137,18 @@ const Profile = () => {
           throw new Error("ID document must be under 5MB.");
         }
         const ext = verifyDocFile.name.split(".").pop()?.toLowerCase() || "jpg";
-        // NOTE: Ideally this should go to a private 'verification-docs' bucket.
-        // Until that bucket is created in Supabase, we store under a restricted
-        // path prefix. Ensure RLS on listing-images restricts this path to admins only.
-        const path = `verification-docs/${user.id}/verify-${Date.now()}.${ext}`;
+        // Private bucket — folder must be the user's id (enforced by RLS).
+        const path = `${user.id}/verify-${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage
-          .from("listing-images")
+          .from("verification-docs")
           .upload(path, verifyDocFile, { contentType: verifyDocFile.type, upsert: false, cacheControl: "31536000" });
         if (upErr) throw upErr;
-        docUrl = supabase.storage.from("listing-images").getPublicUrl(path).data.publicUrl;
+        // Signed URL valid for 1 year so admins can view from the request record.
+        const { data: signed, error: signErr } = await supabase.storage
+          .from("verification-docs")
+          .createSignedUrl(path, 60 * 60 * 24 * 365);
+        if (signErr) throw signErr;
+        docUrl = signed.signedUrl;
       }
       const { data, error } = await supabase
         .from("verification_requests")
