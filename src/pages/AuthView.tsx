@@ -186,15 +186,12 @@ const AuthView = () => {
   const onGoogle = async () => {
     setBusy(true);
     try {
-      // Use Supabase native OAuth - no Lovable dependency
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth`,
-        },
+      const { lovable } = await import("@/integrations/lovable");
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth`,
       });
-      if (error) throw error;
-      // Supabase handles redirect automatically
+      if (result.error) throw result.error;
+      // If redirected, browser navigates away; otherwise session is set.
     } catch (error) {
       const message = error instanceof Error ? error.message : "Google sign-in failed";
       toast({ title: "Google sign-in failed", description: message, variant: "destructive" });
