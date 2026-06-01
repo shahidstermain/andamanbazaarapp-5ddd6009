@@ -11,6 +11,7 @@ import {
   DollarSign,
   CreditCard,
   Shield,
+  BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +33,7 @@ const ADMIN_LINKS: AdminLink[] = [
   { to: "/admin/trip-leads", label: "Trip leads", description: "Inbound trip-planner enquiries", icon: Plane },
   { to: "/admin/price-qa", label: "Price QA", description: "Audit AI-suggested pricing", icon: DollarSign },
   { to: "/payment-test", label: "Payment test", description: "Cashfree sandbox checklist", icon: CreditCard },
+  { to: "/admin/visitors", label: "Visitor insights", description: "Traffic analytics & SEO suggestions", icon: BarChart3 },
 ];
 
 export function AdminToolsCard() {
