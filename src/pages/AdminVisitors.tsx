@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, Shield } from "lucide-react";
+import { Check, Copy, Loader2, RefreshCw, Shield, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminGuard } from "@/components/AdminGuard";
 import { SeoHead } from "@/components/SeoHead";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -244,6 +245,7 @@ function VisitorsDashboard() {
   const [range, setRange] = useState<string>("30d");
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const load = async () => {
     setLoading(true);
@@ -290,6 +292,41 @@ function VisitorsDashboard() {
 
   const suggestions = useMemo(() => buildSeoSuggestions(events), [events]);
   const maxDay = Math.max(1, ...stats.series.map((s) => s.count));
+
+  const [drafts, setDrafts] = useState<SeoDraft[] | null>(null);
+  const [draftsLoading, setDraftsLoading] = useState(false);
+  const [draftsError, setDraftsError] = useState<string | null>(null);
+
+  const generateDrafts = async () => {
+    setDraftsLoading(true);
+    setDraftsError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("seo-generate-drafts", {
+        body: {
+          topPaths: stats.paths.slice(0, 8),
+          topReferers: stats.refs.slice(0, 6),
+          topCountries: stats.countries.slice(0, 6),
+          suggestions,
+          totalSessions: stats.total,
+        },
+      });
+      if (error) throw error;
+      const list = Array.isArray((data as any)?.drafts) ? ((data as any).drafts as SeoDraft[]) : [];
+      setDrafts(list);
+      if (list.length === 0) {
+        toast({
+          title: "No drafts generated",
+          description: "Try again with a wider date range.",
+        });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to generate drafts";
+      setDraftsError(msg);
+      toast({ title: "Could not generate drafts", description: msg, variant: "destructive" });
+    } finally {
+      setDraftsLoading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto max-w-6xl space-y-6 px-4 py-8">
@@ -413,6 +450,163 @@ function VisitorsDashboard() {
           </ul>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+          <div>
+            <CardTitle className="text-base">SEO update drafts</CardTitle>
+            <CardDescription>
+              AI-generated title, meta description and internal-link drafts for your top landing paths.
+              Review before shipping — drafts are not auto-applied.
+            </CardDescription>
+          </div>
+          <Button onClick={generateDrafts} disabled={draftsLoading || stats.total === 0} size="sm">
+            {draftsLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="mr-2 h-4 w-4" />
+            )}
+            {drafts ? "Regenerate" : "Generate drafts"}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {draftsError && (
+            <p className="text-sm text-destructive">{draftsError}</p>
+          )}
+          {!drafts && !draftsLoading && !draftsError && (
+            <p className="text-sm text-muted-foreground">
+              Click <em>Generate drafts</em> to turn the suggestions above into copy-ready edits.
+            </p>
+          )}
+          {drafts && drafts.length > 0 && (
+            <div className="space-y-4">
+              {drafts.map((d) => (
+                <DraftCard key={d.path} draft={d} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+type SeoDraft = {
+  path: string;
+  title: string;
+  description: string;
+  internalLinks: { anchor: string; to: string }[];
+  rationale: string;
+};
+
+function CopyButton({ value, label }: { value: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-7 px-2"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        } catch {
+          /* ignore */
+        }
+      }}
+    >
+      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+      <span className="ml-1 text-xs">{label ?? (copied ? "Copied" : "Copy")}</span>
+    </Button>
+  );
+}
+
+function DraftCard({ draft }: { draft: SeoDraft }) {
+  const titleOver = draft.title.length > 60;
+  const descOver = draft.description.length > 160;
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <div className="mb-3 flex items-center gap-2">
+        <Badge variant="secondary" className="font-mono text-xs">{draft.path}</Badge>
+      </div>
+      <div className="space-y-3">
+        <Field
+          label="Title tag"
+          value={draft.title}
+          meta={`${draft.title.length}/60 chars`}
+          warn={titleOver}
+        />
+        <Field
+          label="Meta description"
+          value={draft.description}
+          meta={`${draft.description.length}/160 chars`}
+          warn={descOver}
+          multiline
+        />
+        <div>
+          <p className="mb-1.5 text-xs font-medium text-muted-foreground">Internal links</p>
+          {draft.internalLinks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No suggestions.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {draft.internalLinks.map((l, i) => (
+                <li key={i} className="flex items-center justify-between gap-2 text-sm">
+                  <span>
+                    <span className="font-medium">{l.anchor}</span>
+                    <span className="ml-2 font-mono text-xs text-muted-foreground">→ {l.to}</span>
+                  </span>
+                  <CopyButton
+                    value={`<a href="${l.to}">${l.anchor}</a>`}
+                    label="HTML"
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {draft.rationale && (
+          <p className="rounded-md bg-muted/50 p-2 text-xs italic text-muted-foreground">
+            {draft.rationale}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  meta,
+  warn,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  meta: string;
+  warn?: boolean;
+  multiline?: boolean;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        <div className="flex items-center gap-2">
+          <span className={`text-xs ${warn ? "text-destructive" : "text-muted-foreground"}`}>
+            {meta}
+          </span>
+          <CopyButton value={value} />
+        </div>
+      </div>
+      <p
+        className={`rounded-md border bg-background p-2 text-sm ${
+          multiline ? "whitespace-pre-wrap" : "truncate"
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
