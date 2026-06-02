@@ -214,6 +214,12 @@ export default function BlogPost() {
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
       </div>
 
+      <AdSlot
+        slot="blog_in_article"
+        className="my-6 min-h-[100px]"
+        label="Sponsored content"
+      />
+
       {post.slug === "andaman-island-creators-2026" && <InstagramCreatorsWidget />}
 
       <SocialShareBar
