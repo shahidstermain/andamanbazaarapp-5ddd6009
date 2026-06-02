@@ -81,6 +81,11 @@ function AdminBlogInner() {
           title: `${label}: nothing published`,
           description: result.reason ?? "Skipped.",
         });
+      } else if (result.status === "accepted") {
+        toast({
+          title: `${label}: running in background`,
+          description: "Refresh the list in ~1–2 minutes to see the new post.",
+        });
       } else {
         toast({
           title: `${label} failed`,
@@ -156,7 +161,7 @@ function AdminBlogInner() {
           className={`rounded-2xl border p-4 text-sm ${
             agentResult.status === "created"
               ? "border-success/40 bg-success/10"
-              : agentResult.status === "skipped"
+              : agentResult.status === "skipped" || agentResult.status === "accepted"
                 ? "border-border bg-muted/40"
                 : "border-destructive/40 bg-destructive/10"
           }`}
@@ -167,8 +172,10 @@ function AdminBlogInner() {
                 {agentResult.agent === "stories" ? "Stories agent" : "News agent"}
                 {agentResult.status === "created" && " · published a fresh post"}
                 {agentResult.status === "skipped" && " · skipped"}
+                {agentResult.status === "accepted" && " · running in background"}
                 {agentResult.status !== "created" &&
                   agentResult.status !== "skipped" &&
+                  agentResult.status !== "accepted" &&
                   " · error"}
               </p>
               {agentResult.title && (

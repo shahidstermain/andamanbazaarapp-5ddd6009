@@ -530,7 +530,9 @@ Deno.serve(async (req) => {
 
   const work = (async () => {
     try {
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    if (!Deno.env.get("LOVABLE_API_KEY") && !Deno.env.get("MINIMAX_API_KEY")) {
+      throw new Error("No AI gateway key configured (LOVABLE_API_KEY or MINIMAX_API_KEY)");
+    }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
