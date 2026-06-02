@@ -5,6 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversionForUser } from "@/lib/gtag";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
