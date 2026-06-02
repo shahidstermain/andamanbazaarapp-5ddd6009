@@ -50,6 +50,14 @@ export function SiteSettingsCard() {
   const [webhookUrl, setWebhookUrl] = useState(settings.visitor_alert_webhook_url ?? "");
   const [savingAlerts, setSavingAlerts] = useState(false);
 
+  // Google Ads + AdSense state
+  const [conversionId, setConversionId] = useState(settings.google_ads_conversion_id ?? "");
+  const [labels, setLabels] = useState<Record<string, string>>(settings.google_ads_conversion_labels ?? {});
+  const [publisherId, setPublisherId] = useState(settings.adsense_publisher_id ?? "");
+  const [adsEnabled, setAdsEnabled] = useState(settings.adsense_enabled);
+  const [slotIds, setSlotIds] = useState<Record<string, string>>(settings.adsense_slot_ids ?? {});
+  const [savingAds, setSavingAds] = useState(false);
+
   useEffect(() => {
     setTitle(settings.site_title);
     setDescription(settings.site_description);
