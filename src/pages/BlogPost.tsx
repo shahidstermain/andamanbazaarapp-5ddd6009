@@ -7,6 +7,7 @@ import { Calendar, Clock, ChevronLeft, Loader2, Sparkles } from "lucide-react";
 import { SeoHead } from "@/components/SeoHead";
 import { AuthorByline, AUTHOR_SHAHID } from "@/components/AuthorByline";
 import { SocialShareBar } from "@/components/SocialShareBar";
+import { AdSlot } from "@/components/AdSlot";
 import {
   fetchPostBySlug,
   fetchRelatedPosts,
