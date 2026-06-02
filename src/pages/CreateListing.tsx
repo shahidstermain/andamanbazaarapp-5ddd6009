@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversionForUser } from "@/lib/gtag";
 import {
   ANDAMAN_AREAS,
   CATEGORIES,
