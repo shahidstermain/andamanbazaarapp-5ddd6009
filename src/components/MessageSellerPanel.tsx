@@ -17,6 +17,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversionForUser } from "@/lib/gtag";
 import { getOrCreateChat } from "@/lib/chats";
 import { computeTrust } from "@/lib/trust";
 import { formatPrice } from "@/lib/listings";
