@@ -79,6 +79,12 @@ export function PayTripDialog({ tripId, open, onOpenChange, onPaid }: Props) {
         throw new Error("Payment not confirmed. If money was deducted, contact support.");
       }
 
+      trackConversion("trip_paid", {
+        value: effectivePrice(TRIP_PRICE_INR),
+        currency: "INR",
+        transaction_id: order.order_id,
+      });
+
       toast({
         title: "Payment received",
         description: "Generating your Andaman trip plan…",
