@@ -21,6 +21,8 @@
  *   // Works identically - same response format!
  */
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 export type GatewayOptions = {
   model: string;
   messages: Array<{ role: string; content: string }>;
