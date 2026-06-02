@@ -138,6 +138,7 @@ export function TripPlannerLeadForm({ className, compact = false }: LeadFormProp
         // Non-blocking: log only. Lead is already in the DB.
         console.warn("send-trip-lead notification failed:", emailError.message);
       }
+      trackConversion("lead_submitted");
       setSuccess(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
