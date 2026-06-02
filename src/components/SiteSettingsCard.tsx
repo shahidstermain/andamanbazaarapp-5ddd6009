@@ -67,6 +67,11 @@ export function SiteSettingsCard() {
     setAlertEmail(settings.visitor_alert_email ?? "");
     setWebhookEnabled(settings.visitor_alerts_webhook_enabled);
     setWebhookUrl(settings.visitor_alert_webhook_url ?? "");
+    setConversionId(settings.google_ads_conversion_id ?? "");
+    setLabels(settings.google_ads_conversion_labels ?? {});
+    setPublisherId(settings.adsense_publisher_id ?? "");
+    setAdsEnabled(settings.adsense_enabled);
+    setSlotIds(settings.adsense_slot_ids ?? {});
   }, [settings]);
 
   useEffect(() => {
@@ -97,6 +102,11 @@ export function SiteSettingsCard() {
       setAlertEmail(s.visitor_alert_email ?? "");
       setWebhookEnabled(s.visitor_alerts_webhook_enabled);
       setWebhookUrl(s.visitor_alert_webhook_url ?? "");
+      setConversionId(s.google_ads_conversion_id ?? "");
+      setLabels(s.google_ads_conversion_labels ?? {});
+      setPublisherId(s.adsense_publisher_id ?? "");
+      setAdsEnabled(s.adsense_enabled);
+      setSlotIds(s.adsense_slot_ids ?? {});
     });
     return () => {
       active = false;
