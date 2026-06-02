@@ -488,6 +488,8 @@ function VisitorsDashboard() {
           )}
         </CardContent>
       </Card>
+
+      <AdsDiagnostics />
     </div>
   );
 }
