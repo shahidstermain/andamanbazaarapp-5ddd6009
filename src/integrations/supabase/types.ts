@@ -1013,7 +1013,12 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          adsense_enabled: boolean
+          adsense_publisher_id: string | null
+          adsense_slot_ids: Json
           github_repo_url: string | null
+          google_ads_conversion_id: string | null
+          google_ads_conversion_labels: Json
           id: boolean
           site_description: string
           site_title: string
@@ -1027,7 +1032,12 @@ export type Database = {
           visitor_alerts_webhook_enabled: boolean
         }
         Insert: {
+          adsense_enabled?: boolean
+          adsense_publisher_id?: string | null
+          adsense_slot_ids?: Json
           github_repo_url?: string | null
+          google_ads_conversion_id?: string | null
+          google_ads_conversion_labels?: Json
           id?: boolean
           site_description?: string
           site_title?: string
@@ -1041,7 +1051,12 @@ export type Database = {
           visitor_alerts_webhook_enabled?: boolean
         }
         Update: {
+          adsense_enabled?: boolean
+          adsense_publisher_id?: string | null
+          adsense_slot_ids?: Json
           github_repo_url?: string | null
+          google_ads_conversion_id?: string | null
+          google_ads_conversion_labels?: Json
           id?: boolean
           site_description?: string
           site_title?: string
@@ -1674,25 +1689,37 @@ export type Database = {
       }
       public_site_settings: {
         Row: {
+          adsense_enabled: boolean | null
+          adsense_publisher_id: string | null
+          adsense_slot_ids: Json | null
           github_repo_url: string | null
+          google_ads_conversion_id: string | null
+          google_ads_conversion_labels: Json | null
           id: boolean | null
           site_description: string | null
           site_title: string | null
-          updated_at: string | null
         }
         Insert: {
+          adsense_enabled?: boolean | null
+          adsense_publisher_id?: string | null
+          adsense_slot_ids?: Json | null
           github_repo_url?: string | null
+          google_ads_conversion_id?: string | null
+          google_ads_conversion_labels?: Json | null
           id?: boolean | null
           site_description?: string | null
           site_title?: string | null
-          updated_at?: string | null
         }
         Update: {
+          adsense_enabled?: boolean | null
+          adsense_publisher_id?: string | null
+          adsense_slot_ids?: Json | null
           github_repo_url?: string | null
+          google_ads_conversion_id?: string | null
+          google_ads_conversion_labels?: Json | null
           id?: boolean | null
           site_description?: string | null
           site_title?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
