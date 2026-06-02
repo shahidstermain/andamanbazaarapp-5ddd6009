@@ -201,6 +201,12 @@ export default function Blog() {
         </ul>
       )}
 
+      <AdSlot
+        slot="blog_index_grid"
+        className="my-6 min-h-[100px]"
+        label="Sponsored content"
+      />
+
       {totalPages > 1 && (
         <nav className="flex items-center justify-center gap-2 pt-4">
           {Array.from({ length: totalPages }).map((_, i) => {
