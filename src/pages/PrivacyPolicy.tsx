@@ -234,6 +234,15 @@ const PrivacyPolicy = () => {
         secure the session. We do not use third-party advertising cookies or cross-site tracking. We may use first-party analytics in aggregate
         form to understand which features are used.
       </p>
+      <p>
+        When campaigns are active, AndamanBazaar uses Google Ads conversion tracking (gtag.js) and Google AdSense on public pages.
+        These services may set first-party cookies (such as <code>_gcl_au</code> and <code>_gads</code>) and collect aggregated device,
+        browser and interaction signals. Personally identifying data — including your email address — is hashed in your browser before it
+        ever leaves your device. We never share raw email addresses or contact details with Google. You can opt out at any time via
+        <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer"> Google Ad Settings</a> or
+        <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer"> learn more about how Google uses data</a>.
+        Admin and authenticated checkout pages are never targeted.
+      </p>
 
       <h2>10. Security</h2>
       <p>
