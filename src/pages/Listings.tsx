@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { ANDAMAN_AREAS, CATEGORIES, ACTIVITY_FILTERS, PRICE_RANGES, formatPrice } from "@/lib/listings";
+import { AdSlot } from "@/components/AdSlot";
 import { slang } from "@/lib/slang";
 import { VerifiedLocalBadge } from "@/components/VerifiedLocalBadge";
 
