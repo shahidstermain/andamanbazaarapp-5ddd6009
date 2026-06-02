@@ -157,6 +157,7 @@ export function MessageSellerPanel({
         .from("messages")
         .insert({ chat_id: chatId, sender_id: user.id, body });
       if (error) throw error;
+      void trackConversionForUser("lead_submitted", user.email);
       setDraftKey(null);
       navigate(`/chats/${chatId}`);
     } catch (e) {
