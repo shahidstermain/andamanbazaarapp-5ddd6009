@@ -140,6 +140,12 @@ export function BoostListingDialog({
         throw new Error("Payment not confirmed. Agar paise kat gaye hain, support se baat karo.");
       }
 
+      trackConversion("boost_paid", {
+        value: effectivePrice(BOOST_PRICE_INR),
+        currency: "INR",
+        transaction_id: orderData.order_id,
+      });
+
       toast({
         title: "Boost active!",
         description: "Listing ab Featured rail mein dikh rahi hai. Boat pe bharosa rakho.",
