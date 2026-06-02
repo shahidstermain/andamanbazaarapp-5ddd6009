@@ -161,7 +161,7 @@ function AdminBlogInner() {
           className={`rounded-2xl border p-4 text-sm ${
             agentResult.status === "created"
               ? "border-success/40 bg-success/10"
-              : agentResult.status === "skipped"
+              : agentResult.status === "skipped" || agentResult.status === "accepted"
                 ? "border-border bg-muted/40"
                 : "border-destructive/40 bg-destructive/10"
           }`}
