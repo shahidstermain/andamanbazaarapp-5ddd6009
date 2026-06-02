@@ -324,5 +324,3 @@ export async function uploadCoverImage(
   }
 }
 
-// Re-export callAI for advanced usage
-export { callAI } from "./ai-gateway.ts";
