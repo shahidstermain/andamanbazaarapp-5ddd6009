@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Calendar, Clock, ArrowRight, Loader2 } from "lucide-react";
 import { SeoHead } from "@/components/SeoHead";
+import { AdSlot } from "@/components/AdSlot";
 import {
   fetchPublishedPosts,
   CATEGORY_LABEL,
