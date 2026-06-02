@@ -10,6 +10,13 @@ export type SiteSettings = {
   visitor_alert_email: string | null;
   visitor_alerts_webhook_enabled: boolean;
   visitor_alert_webhook_url: string | null;
+  // Google Ads + AdSense (admin-managed, public-readable so the
+  // client can configure gtag/adsbygoogle without a redeploy).
+  google_ads_conversion_id: string | null;
+  google_ads_conversion_labels: Record<string, string>;
+  adsense_publisher_id: string | null;
+  adsense_enabled: boolean;
+  adsense_slot_ids: Record<string, string>;
 };
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -23,6 +30,11 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   visitor_alert_email: null,
   visitor_alerts_webhook_enabled: false,
   visitor_alert_webhook_url: null,
+  google_ads_conversion_id: null,
+  google_ads_conversion_labels: {},
+  adsense_publisher_id: null,
+  adsense_enabled: false,
+  adsense_slot_ids: {},
 };
 
 export async function fetchSiteSettings(): Promise<SiteSettings> {
