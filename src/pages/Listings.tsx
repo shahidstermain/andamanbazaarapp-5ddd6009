@@ -368,6 +368,11 @@ const Listings = () => {
               );
             })}
           </ul>
+          <AdSlot
+            slot="listings_grid"
+            className="mt-6 min-h-[100px]"
+            label="Sponsored listing"
+          />
           {hasMore && (
             <div className="mt-6 flex justify-center">
               <Button variant="outline" className="rounded-full px-8" onClick={loadMore} disabled={loadingMore}>
