@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, Loader2, Save } from "lucide-react";
+import { Bell, Loader2, Save, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteMeta } from "@/hooks/useSiteMeta";
 import { updateSiteSettings, fetchAdminSiteSettings } from "@/lib/siteSettings";
+
+const CONVERSION_ACTIONS: { key: string; label: string; hint: string }[] = [
+  { key: "signup", label: "Signup", hint: "Email signup completes (Google OAuth excluded)." },
+  { key: "listing_posted", label: "Listing posted", hint: "Seller publishes a new listing." },
+  { key: "lead_submitted", label: "Lead submitted", hint: "Message seller, booking lead, trip-planner lead." },
+  { key: "trip_paid", label: "Trip plan paid", hint: "Cashfree confirms trip-plan payment." },
+  { key: "boost_paid", label: "Boost paid", hint: "Cashfree confirms boost payment." },
+  { key: "booking_paid", label: "Booking paid", hint: "Future: paid booking checkout." },
+];
+
+const SLOT_KEYS: { key: string; label: string; hint: string }[] = [
+  { key: "blog_in_article", label: "Blog — in-article", hint: "Shows beneath the blog post body." },
+  { key: "blog_index_grid", label: "Blog — index grid", hint: "Shows beneath the blog post grid." },
+  { key: "listings_grid", label: "Listings — grid", hint: "Shows beneath the marketplace results grid." },
+];
+
+const AW_REGEX = /^AW-\d{8,12}$/;
+const PUB_REGEX = /^ca-pub-\d{16}$/;
+const LABEL_REGEX = /^[A-Za-z0-9_-]{6,60}$/;
+const SLOT_ID_REGEX = /^\d{6,16}$/;
 
 export function SiteSettingsCard() {
   const { user } = useAuth();
