@@ -185,6 +185,71 @@ export function SiteSettingsCard() {
     }
   };
 
+  const onSaveAds = async () => {
+    const id = conversionId.trim();
+    const pub = publisherId.trim();
+    if (id && !AW_REGEX.test(id)) {
+      toast({ title: "Invalid Conversion ID", description: "Expected format AW-XXXXXXXXXX.", variant: "destructive" });
+      return;
+    }
+    if (pub && !PUB_REGEX.test(pub)) {
+      toast({ title: "Invalid AdSense Publisher ID", description: "Expected format ca-pub-XXXXXXXXXXXXXXXX.", variant: "destructive" });
+      return;
+    }
+    // Validate and prune labels — keep only non-empty, valid label strings.
+    const cleanedLabels: Record<string, string> = {};
+    for (const { key } of CONVERSION_ACTIONS) {
+      const v = (labels[key] ?? "").trim();
+      if (!v) continue;
+      if (!LABEL_REGEX.test(v)) {
+        toast({
+          title: `Invalid label for "${key}"`,
+          description: "Labels are 6–60 characters, letters/digits/_-.",
+          variant: "destructive",
+        });
+        return;
+      }
+      cleanedLabels[key] = v;
+    }
+    const cleanedSlots: Record<string, string> = {};
+    for (const { key } of SLOT_KEYS) {
+      const v = (slotIds[key] ?? "").trim();
+      if (!v) continue;
+      if (!SLOT_ID_REGEX.test(v)) {
+        toast({
+          title: `Invalid slot ID for "${key}"`,
+          description: "AdSense slot IDs are numeric (6–16 digits).",
+          variant: "destructive",
+        });
+        return;
+      }
+      cleanedSlots[key] = v;
+    }
+    setSavingAds(true);
+    try {
+      await updateSiteSettings(
+        {
+          google_ads_conversion_id: id || null,
+          google_ads_conversion_labels: cleanedLabels,
+          adsense_publisher_id: pub || null,
+          adsense_enabled: adsEnabled && !!pub,
+          adsense_slot_ids: cleanedSlots,
+        },
+        user?.id,
+      );
+      await refresh();
+      toast({ title: "Ad settings saved" });
+    } catch (e) {
+      toast({
+        title: "Could not save ad settings",
+        description: e instanceof Error ? e.message : "Try again",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingAds(false);
+    }
+  };
+
   return (
     <>
     <section className="rounded-2xl border border-border bg-card p-5">
