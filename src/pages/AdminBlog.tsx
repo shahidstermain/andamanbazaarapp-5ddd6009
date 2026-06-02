@@ -172,8 +172,10 @@ function AdminBlogInner() {
                 {agentResult.agent === "stories" ? "Stories agent" : "News agent"}
                 {agentResult.status === "created" && " · published a fresh post"}
                 {agentResult.status === "skipped" && " · skipped"}
+                {agentResult.status === "accepted" && " · running in background"}
                 {agentResult.status !== "created" &&
                   agentResult.status !== "skipped" &&
+                  agentResult.status !== "accepted" &&
                   " · error"}
               </p>
               {agentResult.title && (
