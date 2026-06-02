@@ -81,6 +81,11 @@ function AdminBlogInner() {
           title: `${label}: nothing published`,
           description: result.reason ?? "Skipped.",
         });
+      } else if (result.status === "accepted") {
+        toast({
+          title: `${label}: running in background`,
+          description: "Refresh the list in ~1–2 minutes to see the new post.",
+        });
       } else {
         toast({
           title: `${label} failed`,
