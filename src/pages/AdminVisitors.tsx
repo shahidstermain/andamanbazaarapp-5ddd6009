@@ -28,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { AdsDiagnostics } from "@/components/AdsDiagnostics";
 
 type Event = {
   id: string;
