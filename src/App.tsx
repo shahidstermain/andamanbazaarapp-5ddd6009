@@ -8,6 +8,7 @@ import { Layout } from "@/components/Layout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SiteMetaProvider } from "@/hooks/useSiteMeta";
 import { recordVisitorOnce } from "@/lib/visitorTracking";
+import { GtagLoader } from "@/components/GtagLoader";
 import Index from "./pages/Index.tsx";
 
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
@@ -61,6 +62,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <GtagLoader />
           <Suspense fallback={null}>
           <Routes>
             <Route element={<Layout />}>
