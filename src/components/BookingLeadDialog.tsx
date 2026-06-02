@@ -5,6 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversionForUser } from "@/lib/gtag";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -185,6 +186,7 @@ export function BookingLeadDialog({
         query: tagLine || null,
       });
       if (error) throw error;
+      void trackConversionForUser("lead_submitted", data.email ?? null);
 
       // Best-effort admin notification — never block the booking flow.
       supabase.functions

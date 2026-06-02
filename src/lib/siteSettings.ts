@@ -10,6 +10,13 @@ export type SiteSettings = {
   visitor_alert_email: string | null;
   visitor_alerts_webhook_enabled: boolean;
   visitor_alert_webhook_url: string | null;
+  // Google Ads + AdSense (admin-managed, public-readable so the
+  // client can configure gtag/adsbygoogle without a redeploy).
+  google_ads_conversion_id: string | null;
+  google_ads_conversion_labels: Record<string, string>;
+  adsense_publisher_id: string | null;
+  adsense_enabled: boolean;
+  adsense_slot_ids: Record<string, string>;
 };
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -23,7 +30,21 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   visitor_alert_email: null,
   visitor_alerts_webhook_enabled: false,
   visitor_alert_webhook_url: null,
+  google_ads_conversion_id: null,
+  google_ads_conversion_labels: {},
+  adsense_publisher_id: null,
+  adsense_enabled: false,
+  adsense_slot_ids: {},
 };
+
+function asRecord(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object") return {};
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof v === "string") out[k] = v;
+  }
+  return out;
+}
 
 export async function fetchSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await supabase
@@ -44,6 +65,11 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     visitor_alert_email: DEFAULT_SITE_SETTINGS.visitor_alert_email,
     visitor_alerts_webhook_enabled: DEFAULT_SITE_SETTINGS.visitor_alerts_webhook_enabled,
     visitor_alert_webhook_url: DEFAULT_SITE_SETTINGS.visitor_alert_webhook_url,
+    google_ads_conversion_id: (d.google_ads_conversion_id as string | null) ?? null,
+    google_ads_conversion_labels: asRecord(d.google_ads_conversion_labels),
+    adsense_publisher_id: (d.adsense_publisher_id as string | null) ?? null,
+    adsense_enabled: (d.adsense_enabled as boolean) ?? false,
+    adsense_slot_ids: asRecord(d.adsense_slot_ids),
   };
 }
 
@@ -69,6 +95,11 @@ export async function fetchAdminSiteSettings(): Promise<SiteSettings> {
     visitor_alert_email: (d.visitor_alert_email as string | null) ?? null,
     visitor_alerts_webhook_enabled: (d.visitor_alerts_webhook_enabled as boolean) ?? false,
     visitor_alert_webhook_url: (d.visitor_alert_webhook_url as string | null) ?? null,
+    google_ads_conversion_id: (d.google_ads_conversion_id as string | null) ?? null,
+    google_ads_conversion_labels: asRecord(d.google_ads_conversion_labels),
+    adsense_publisher_id: (d.adsense_publisher_id as string | null) ?? null,
+    adsense_enabled: (d.adsense_enabled as boolean) ?? false,
+    adsense_slot_ids: asRecord(d.adsense_slot_ids),
   };
 }
 
@@ -94,5 +125,10 @@ export async function updateSiteSettings(
     visitor_alert_email: (d.visitor_alert_email as string | null) ?? null,
     visitor_alerts_webhook_enabled: (d.visitor_alerts_webhook_enabled as boolean) ?? false,
     visitor_alert_webhook_url: (d.visitor_alert_webhook_url as string | null) ?? null,
+    google_ads_conversion_id: (d.google_ads_conversion_id as string | null) ?? null,
+    google_ads_conversion_labels: asRecord(d.google_ads_conversion_labels),
+    adsense_publisher_id: (d.adsense_publisher_id as string | null) ?? null,
+    adsense_enabled: (d.adsense_enabled as boolean) ?? false,
+    adsense_slot_ids: asRecord(d.adsense_slot_ids),
   };
 }

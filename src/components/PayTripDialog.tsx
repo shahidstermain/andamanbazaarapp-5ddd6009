@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversion } from "@/lib/gtag";
 import {
   createTripOrder,
   loadCashfreeSdk,
@@ -77,6 +78,12 @@ export function PayTripDialog({ tripId, open, onOpenChange, onPaid }: Props) {
       if (verify.status !== "paid") {
         throw new Error("Payment not confirmed. If money was deducted, contact support.");
       }
+
+      trackConversion("trip_paid", {
+        value: effectivePrice(TRIP_PRICE_INR),
+        currency: "INR",
+        transaction_id: order.order_id,
+      });
 
       toast({
         title: "Payment received",

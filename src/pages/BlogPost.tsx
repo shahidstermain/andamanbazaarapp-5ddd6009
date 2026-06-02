@@ -7,6 +7,7 @@ import { Calendar, Clock, ChevronLeft, Loader2, Sparkles } from "lucide-react";
 import { SeoHead } from "@/components/SeoHead";
 import { AuthorByline, AUTHOR_SHAHID } from "@/components/AuthorByline";
 import { SocialShareBar } from "@/components/SocialShareBar";
+import { AdSlot } from "@/components/AdSlot";
 import {
   fetchPostBySlug,
   fetchRelatedPosts,
@@ -212,6 +213,12 @@ export default function BlogPost() {
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
       </div>
+
+      <AdSlot
+        slot="blog_in_article"
+        className="my-6 min-h-[100px]"
+        label="Sponsored content"
+      />
 
       {post.slug === "andaman-island-creators-2026" && <InstagramCreatorsWidget />}
 

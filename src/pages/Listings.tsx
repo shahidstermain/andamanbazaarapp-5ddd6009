@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { ANDAMAN_AREAS, CATEGORIES, ACTIVITY_FILTERS, PRICE_RANGES, formatPrice } from "@/lib/listings";
+import { AdSlot } from "@/components/AdSlot";
 import { slang } from "@/lib/slang";
 import { VerifiedLocalBadge } from "@/components/VerifiedLocalBadge";
 
@@ -367,6 +368,11 @@ const Listings = () => {
               );
             })}
           </ul>
+          <AdSlot
+            slot="listings_grid"
+            className="mt-6 min-h-[100px]"
+            label="Sponsored listing"
+          />
           {hasMore && (
             <div className="mt-6 flex justify-center">
               <Button variant="outline" className="rounded-full px-8" onClick={loadMore} disabled={loadingMore}>

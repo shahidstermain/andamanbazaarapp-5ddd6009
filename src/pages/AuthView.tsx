@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversionForUser } from "@/lib/gtag";
 import { Loader2, Anchor, Compass, ShieldCheck, Phone, Info } from "lucide-react";
 import logoUrl from "@/assets/logo.webp";
 import {
@@ -159,6 +160,7 @@ const AuthView = () => {
           },
         });
         if (error) throw error;
+        void trackConversionForUser("signup", email);
         toast({
           title: "Check your inbox",
           description: "We sent you a confirmation link to finish signing up.",

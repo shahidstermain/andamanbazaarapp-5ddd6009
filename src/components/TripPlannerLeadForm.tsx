@@ -3,6 +3,7 @@ import { CheckCircle2, Loader2, Phone } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversion } from "@/lib/gtag";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -137,6 +138,7 @@ export function TripPlannerLeadForm({ className, compact = false }: LeadFormProp
         // Non-blocking: log only. Lead is already in the DB.
         console.warn("send-trip-lead notification failed:", emailError.message);
       }
+      trackConversion("lead_submitted");
       setSuccess(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";

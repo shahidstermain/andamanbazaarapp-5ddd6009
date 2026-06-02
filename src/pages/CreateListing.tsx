@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversionForUser } from "@/lib/gtag";
 import {
   ANDAMAN_AREAS,
   CATEGORIES,
@@ -303,6 +304,9 @@ const CreateListing = () => {
         title: isEdit ? "Listing updated" : "Listing posted",
         description: isEdit ? "Changes are live." : "It's live for buyers to see.",
       });
+      if (!isEdit) {
+        void trackConversionForUser("listing_posted", user.email);
+      }
       navigate(`/listings/${listingId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Something went wrong";

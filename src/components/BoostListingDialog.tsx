@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AlertCircle, Eye, Loader2, RefreshCw, Rocket, Sparkles, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversion } from "@/lib/gtag";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -138,6 +139,12 @@ export function BoostListingDialog({
       if (verifyData?.status !== "paid") {
         throw new Error("Payment not confirmed. Agar paise kat gaye hain, support se baat karo.");
       }
+
+      trackConversion("boost_paid", {
+        value: effectivePrice(BOOST_PRICE_INR),
+        currency: "INR",
+        transaction_id: orderData.order_id,
+      });
 
       toast({
         title: "Boost active!",

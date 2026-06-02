@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Calendar, Clock, ArrowRight, Loader2 } from "lucide-react";
 import { SeoHead } from "@/components/SeoHead";
+import { AdSlot } from "@/components/AdSlot";
 import {
   fetchPublishedPosts,
   CATEGORY_LABEL,
@@ -199,6 +200,12 @@ export default function Blog() {
           ))}
         </ul>
       )}
+
+      <AdSlot
+        slot="blog_index_grid"
+        className="my-6 min-h-[100px]"
+        label="Sponsored content"
+      />
 
       {totalPages > 1 && (
         <nav className="flex items-center justify-center gap-2 pt-4">
