@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AlertCircle, Eye, Loader2, RefreshCw, Rocket, Sparkles, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { trackConversion } from "@/lib/gtag";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
