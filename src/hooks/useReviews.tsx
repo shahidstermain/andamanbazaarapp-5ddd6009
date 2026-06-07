@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,16 +31,15 @@ export function useReviews(listingId: string) {
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      type ReviewRow = Database['public']['Tables']['listing_reviews']['Row'];
+      const { data, error } = await supabase
         .from("listing_reviews")
         .select(`id, comment, ratings, helpful_count, is_verified, created_at, user_id`)
         .eq("listing_id", listingId)
         .order("created_at", { ascending: false });
 
-      // Table may not exist yet if migration hasn't been run
       if (error) {
         if (error.code === "42P01") {
-          // relation does not exist — migration pending, fail silently
           console.warn("listing_reviews table not found. Run DASHBOARD_RUN_THIS.sql first.");
         } else {
           console.error("Failed to fetch reviews:", error);
@@ -50,8 +50,8 @@ export function useReviews(listingId: string) {
         return;
       }
 
-      // Fetch user profiles separately
-      const userIds = [...new Set((data as any[])?.map((r: any) => r.user_id) || [])] as string[];
+      const rows = (data || []) as ReviewRow[];
+      const userIds = [...new Set(rows.map((r) => r.user_id))] as string[];
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from("public_profiles")
@@ -61,11 +61,11 @@ export function useReviews(listingId: string) {
         const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
         setReviews(
-          (data as any[])?.map((r: any) => ({
+          rows.map((r) => ({
             ...r,
             user_name: profileMap.get(r.user_id)?.name || "Anonymous",
             user_avatar: profileMap.get(r.user_id)?.photo_url,
-          })) || []
+          }))
         );
       } else {
         setReviews([]);
@@ -81,19 +81,19 @@ export function useReviews(listingId: string) {
 
   const fetchStats = useCallback(async () => {
     try {
-      const { data, error } = await (supabase as any).rpc("calculate_listing_rating", {
+      const { data, error } = await supabase.rpc("calculate_listing_rating", {
         listing_uuid: listingId,
       });
 
-      // Function may not exist yet if migration hasn't been run — fail silently
       if (error) {
         console.warn("calculate_listing_rating unavailable:", error.message);
         return;
       }
-      if (data && Array.isArray(data) && data.length > 0) {
+      const rows = data as Array<{ average_rating: number; total_reviews: number }> | null;
+      if (rows && Array.isArray(rows) && rows.length > 0) {
         setStats({
-          average_rating: Number(data[0].average_rating) || 0,
-          total_reviews: Number(data[0].total_reviews) || 0,
+          average_rating: Number(rows[0].average_rating) || 0,
+          total_reviews: Number(rows[0].total_reviews) || 0,
         });
       }
     } catch (error) {
@@ -126,7 +126,7 @@ export function useReviews(listingId: string) {
 
       setSubmitting(true);
       try {
-        const { error } = await (supabase as any).from("listing_reviews").insert({
+        const { error } = await supabase.from("listing_reviews").insert({
           listing_id: listingId,
           user_id: user.id,
           ratings,
@@ -136,16 +136,16 @@ export function useReviews(listingId: string) {
         if (error) throw error;
 
         toast({ title: "Review submitted successfully!" });
-        
-        // Refresh reviews and stats
+
         await Promise.all([fetchReviews(), fetchStats()]);
-        
+
         return true;
-      } catch (error: any) {
+      } catch (error) {
         console.error("Review submission error:", error);
-        if (error.code === "23505") {
+        const err = error as { code?: string; message?: string } | Error | unknown;
+        if (typeof err === "object" && err !== null && "code" in err && err.code === "23505") {
           toast({ title: "You've already reviewed this listing", variant: "destructive" });
-        } else if (error.message?.includes("rate limit")) {
+        } else if (error instanceof Error && error.message?.includes("rate limit")) {
           toast({ title: "Too many reviews", description: "Maximum 5 reviews per day", variant: "destructive" });
         } else {
           toast({ title: "Failed to submit review", variant: "destructive" });

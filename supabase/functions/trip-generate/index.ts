@@ -314,6 +314,7 @@ function sanitize(text: string): string {
     .replace(/\u2026/g, "...")
     .replace(/\u20B9/g, "Rs ")
     .replace(/\u00A0/g, " ")
+    // eslint-disable-next-line no-control-regex
     .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, "");
 }
 

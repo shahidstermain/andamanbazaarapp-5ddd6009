@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import type { PostgrestError } from "@supabase/supabase-js";
 import { BookingLeadDialog } from "@/components/BookingLeadDialog";
 
 interface WhatsAppShareProps {
@@ -51,13 +52,13 @@ export function WhatsAppShare({
     
     // Track the share (best-effort — doesn't block the share action)
     if (user) {
-      (supabase as any).from("whatsapp_shares").insert({
+      supabase.from("whatsapp_shares").insert({
         user_id: user.id,
         listing_id: type === "listing" || type === "experience" ? listingId : null,
         trip_id: type === "trip" ? tripId : null,
         share_type: type,
         message_template: decodeURIComponent(message),
-      }).then(({ error }: { error: any }) => {
+      }).then(({ error }: { error: PostgrestError | null }) => {
         if (error && error.code !== "42P01") {
           console.warn("Failed to track share:", error.message);
         }
@@ -234,7 +235,7 @@ export function WhatsAppBookingConfirm({
     const url = `${base}?text=${encodeURIComponent(text)}`;
 
     if (user) {
-      (supabase as any)
+      supabase
         .from("whatsapp_shares")
         .insert({
           user_id: user.id,
@@ -242,7 +243,7 @@ export function WhatsAppBookingConfirm({
           share_type: "booking_confirmation",
           message_template: text,
         })
-        .then(({ error }: { error: any }) => {
+        .then(({ error }: { error: PostgrestError | null }) => {
           if (error && error.code !== "42P01") {
             console.warn("Failed to track booking confirmation share:", error.message);
           }

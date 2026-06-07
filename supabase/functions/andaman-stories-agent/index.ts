@@ -214,8 +214,7 @@ async function callLovableJSON(
         },
       ],
       tool_choice: { type: "function", function: { name: "publish_story" } },
-    }),
-  });
+    });
   if (res.status === 429) throw new Error("ai_rate_limited");
   if (res.status === 402) throw new Error("ai_credits_exhausted");
   if (!res.ok) throw new Error(`AI ${res.status}: ${(await res.text()).slice(0, 300)}`);

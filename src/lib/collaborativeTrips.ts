@@ -14,7 +14,7 @@ export async function saveCollaborativeTrip(
       return { success: true, collabTripId: null };
     }
 
-    const { data: collabTrip, error: tripError } = await (supabase as any)
+    const { data: collabTrip, error: tripError } = await supabase
       .from("collaborative_trips")
       .insert({
         trip_id: tripId,

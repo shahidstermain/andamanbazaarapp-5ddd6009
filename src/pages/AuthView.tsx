@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { trackConversionForUser } from "@/lib/gtag";
@@ -188,12 +187,13 @@ const AuthView = () => {
   const onGoogle = async () => {
     setBusy(true);
     try {
-      const { lovable } = await import("@/integrations/lovable");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+        },
       });
-      if (result.error) throw result.error;
-      // If redirected, browser navigates away; otherwise session is set.
+      if (error) throw error;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Google sign-in failed";
       toast({ title: "Google sign-in failed", description: message, variant: "destructive" });

@@ -121,8 +121,8 @@ async function generateRecs(
           parameters: REC_SCHEMA,
         },
       },
-      tool_choice: { type: "function", function: { name: "emit_recommendations" } },
     ],
+    tool_choice: { type: "function", function: { name: "emit_recommendations" } },
   });
 
   if (!res.ok) {
